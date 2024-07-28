@@ -4,29 +4,28 @@
 import SwiftUI
 import Foundation
 
-//struct MovableView {
-//    @State var offset = CGPoint.zero
-//    
-//    var moveHandle: some View {
-//        MoveHandle(position: $offset)
-//    }
-//}
+struct TextModel {
+    var text: String
+    var position: CGPoint
+    var frame: CGSize?
+    var id: UUID
+}
 
 struct MoveHandle: View {
     
-    @Binding var position: CGPoint
+    @Binding var textModel: TextModel
     var externalGeometry: GeometryProxy
     
     var body: some View {
         Circle()
             .frame(width: 20, height: 20)
             .foregroundColor(.red)
-            .position(position)
+            .position(textModel.position)
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
                         var pos = gesture.location
-                        print(externalGeometry.frame(in: .local).size)
+//                        print(externalGeometry.frame(in: .local).size)
                         if gesture.location.x < 0 {
                             pos.x = 0
                         }
@@ -39,15 +38,59 @@ struct MoveHandle: View {
                         if gesture.location.y > externalGeometry.size.height {
                             pos.y = externalGeometry.size.height
                         }
-                        position = pos
+                        textModel.position = pos
                     }
             )
     }
 }
 
+struct SizeHandle: View {
+    
+    @Binding var textModel: TextModel
+    @State var handlePos: CGPoint = .zero
+    var externalGeometry: GeometryProxy
+    
+    var calcPosition: CGPoint {
+        
+        if let frame = textModel.frame {
+            return CGPoint(x: textModel.position.x + frame.width, y: textModel.position.y + frame.height)
+        }
+        return CGPoint(x: textModel.position.x + 20, y: textModel.position.y + 20)
+        
+    }
+    
+    var body: some View {
+        Circle()
+            .frame(width: 20, height: 20)
+            .foregroundColor(.green)
+            .position(calcPosition)
+            .gesture(
+                DragGesture()
+                    .onChanged { gesture in
+                        var pos = gesture.location
+                        if gesture.location.x < 0 {
+                            pos.x = 0
+                        }
+                        if gesture.location.y < 0 {
+                            pos.y = 0
+                        }
+                        if gesture.location.x > externalGeometry.size.width {
+                            pos.x = externalGeometry.size.width
+                        }
+                        if gesture.location.y > externalGeometry.size.height {
+                            pos.y = externalGeometry.size.height
+                        }
+                        handlePos = pos
+                    }
+            )
+    }
+}
+
+
 struct Editor: View {
     
-    @State private var offset = CGPoint.zero
+    @State var selectedGeometry: GeometryProxy? = nil
+    @State var textModel = TextModel(text: "foobar", position: CGPoint(), id: UUID())
     
     var body: some View {
         ZStack {
@@ -58,16 +101,29 @@ struct Editor: View {
                     rendersAsynchronously: false
                 ) { context, size in
                     let rect = CGRect(origin: .zero, size: size)
-                    var path = Rectangle().path(in: rect)
+                    let path = Rectangle().path(in: rect)
                     context.fill(path, with: .color(.white))
                     
-                    context.draw(Text("SwiftUI Canvas")
-                        .bold()
-                        .italic()
-                        .foregroundColor(.green), at: offset)
+                    if let symbol = context.resolveSymbol(id: textModel.id) {
+                        DispatchQueue.main.async {
+                            if textModel.frame == nil {
+                                textModel.frame = symbol.size
+                            }
+                        }
+                        context.draw(symbol, in: CGRect(origin: textModel.position, size: symbol.size))
+                    }
+                    
+                    
+                } symbols: {
+                    Text("foo bar")
+                        .foregroundColor(.red)
+                        .tag(textModel.id)
                 }
                 
-                MoveHandle(position: $offset, externalGeometry: geometry)
+                MoveHandle(textModel: $textModel, externalGeometry: geometry)
+                if textModel.frame != nil {
+                    SizeHandle(textModel: $textModel, externalGeometry: geometry)
+                }
             }
         }
         .aspectRatio(0.77, contentMode: .fit)
