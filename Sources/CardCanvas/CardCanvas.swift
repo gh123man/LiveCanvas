@@ -63,9 +63,9 @@ struct Editor: View {
                     }
                 }
                 
-                MoveHandle(viewModel: $viewModels[selectedIndex], externalGeometry: geometry)
-                if viewModels[selectedIndex].frame != nil {
-                    SizeHandle(viewModel: $viewModels[selectedIndex], externalGeometry: geometry)
+                ForEach($viewModels) { $viewModel in
+                    MoveHandle(viewModel: $viewModel, externalGeometry: geometry)
+                    SizeHandle(viewModel: $viewModel, externalGeometry: geometry)
                 }
             }
         }
