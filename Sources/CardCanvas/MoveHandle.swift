@@ -10,35 +10,42 @@ import SwiftUI
 
 struct MoveHandle: View {
     
-    @Binding var ViewModel: ViewModel
+    @Binding var viewModel: ViewModel
     @State private var fingerPosition: CGPoint?
     var externalGeometry: GeometryProxy
     
-    var frame: CGSize {
-        guard let frame = ViewModel.frame else {
+    var size: CGSize {
+        guard let size = viewModel.frame?.size else {
             return .zero
         }
-        return frame
+        return size
+    }
+    
+    var position: CGPoint {
+        guard let origin = viewModel.frame?.origin else {
+            return .zero
+        }
+        return origin
     }
     
     var offset: CGSize {
-        return CGSize(width: frame.width / 2, height: frame.height / 2)
+        return CGSize(width: size.width / 2, height: size.height / 2)
     }
     
     var body: some View {
         Rectangle()
             .border(.blue)
-            .frame(width: frame.width, height: frame.height)
+            .frame(width: size.width, height: size.height)
             .contentShape(Rectangle())
             .offset(offset)
             .foregroundColor(.clear)
-            .position(ViewModel.position)
+            .position(position)
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
                         var pos = gesture.location
                         if fingerPosition == nil {
-                            fingerPosition = CGPoint(x: pos.x - ViewModel.position.x, y: pos.y - ViewModel.position.y)
+                            fingerPosition = CGPoint(x: pos.x - position.x, y: pos.y - position.y)
                         }
 
                         // Ensure stays within parent view bounds
@@ -52,7 +59,7 @@ struct MoveHandle: View {
                             pos.y -= fingerPosition.y
                         }
                         
-                        ViewModel.position = pos
+                        viewModel.frame?.origin = pos
                     }
                     .onEnded { _ in
                         fingerPosition = nil

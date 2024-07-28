@@ -10,24 +10,23 @@ import SwiftUI
 
 struct SizeHandle: View {
     
-    @Binding var ViewModel: ViewModel
+    @Binding var viewModel: ViewModel
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     
     let minSize = CGSize(width: 20, height: 20)
     
     var calcPosition: CGPoint {
-        
-        if let frame = ViewModel.frame {
-            return CGPoint(x: ViewModel.position.x + frame.width, y: ViewModel.position.y + frame.height)
+        if let frame = viewModel.frame {
+            return CGPoint(x: frame.origin.x + frame.size.width, y: frame.origin.y + frame.size.height)
         }
-        return CGPoint(x: ViewModel.position.x + 20, y: ViewModel.position.y + 20)
+        return .zero
         
     }
     
     func computePosition() {
-        if let frame = ViewModel.frame {
-            handlePos = CGPoint(x: ViewModel.position.x + frame.width, y: ViewModel.position.y + frame.height)
+        if let frame = viewModel.frame {
+            handlePos = CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height)
         }
         
     }
@@ -43,7 +42,7 @@ struct SizeHandle: View {
             .frame(width: 24, height: 24)
             .position(handlePos)
             .shadow(radius: 5)
-            .onChange(of: ViewModel.position) { _ in
+            .onChange(of: viewModel.frame) { _ in
                 computePosition()
             }
             .onAppear {
@@ -60,13 +59,16 @@ struct SizeHandle: View {
                         pos.x = gesture.location.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
                         pos.y = gesture.location.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
                         
-                        var newFrame = CGSize(width: pos.x - ViewModel.position.x, height: pos.y - ViewModel.position.y)
+                        var newFrame: CGSize = .zero
+                        if let frame = viewModel.frame {
+                            newFrame = CGSize(width: pos.x - frame.origin.x, height: pos.y - frame.origin.y)
+                        }
                         
                         // Enfornce mininmum size
                         newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
                         newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
 
-                        ViewModel.frame = newFrame
+                        viewModel.frame?.size = newFrame
                         computePosition()
                     }
             )
