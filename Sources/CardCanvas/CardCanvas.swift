@@ -81,8 +81,13 @@ struct Editor: View {
                     .foregroundColor(.red)
             },
             ViewModel {
-                Text("test")
-                    .foregroundColor(.blue)
+                Text("🌴")
+            },
+            ViewModel {
+                Image(systemName: "photo.artframe")
+                    .resizable()
+                    .frame(width: 200, height: 200)
+                
             },
             
         ])
