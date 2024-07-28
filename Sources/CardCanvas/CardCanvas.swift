@@ -25,19 +25,11 @@ struct MoveHandle: View {
                 DragGesture()
                     .onChanged { gesture in
                         var pos = gesture.location
-//                        print(externalGeometry.frame(in: .local).size)
-                        if gesture.location.x < 0 {
-                            pos.x = 0
-                        }
-                        if gesture.location.y < 0 {
-                            pos.y = 0
-                        }
-                        if gesture.location.x > externalGeometry.size.width {
-                            pos.x = externalGeometry.size.width
-                        }
-                        if gesture.location.y > externalGeometry.size.height {
-                            pos.y = externalGeometry.size.height
-                        }
+                        
+                        pos.x = gesture.location.x < 0 ? 0 : pos.x
+                        pos.y = gesture.location.y < 0 ? 0 : pos.y
+                        pos.x = gesture.location.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
+                        pos.y = gesture.location.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
                         textModel.position = pos
                     }
             )
@@ -59,28 +51,36 @@ struct SizeHandle: View {
         
     }
     
+    func computePosition() {
+        if let frame = textModel.frame {
+            handlePos = CGPoint(x: textModel.position.x + frame.width, y: textModel.position.y + frame.height)
+        }
+        
+    }
+    
     var body: some View {
         Circle()
             .frame(width: 20, height: 20)
             .foregroundColor(.green)
-            .position(calcPosition)
+            .position(handlePos)
+            .onChange(of: textModel.position) { _ in
+                computePosition()
+            }
+            .onAppear {
+                computePosition()
+            }
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
                         var pos = gesture.location
-                        if gesture.location.x < 0 {
-                            pos.x = 0
-                        }
-                        if gesture.location.y < 0 {
-                            pos.y = 0
-                        }
-                        if gesture.location.x > externalGeometry.size.width {
-                            pos.x = externalGeometry.size.width
-                        }
-                        if gesture.location.y > externalGeometry.size.height {
-                            pos.y = externalGeometry.size.height
-                        }
-                        handlePos = pos
+                        pos.x = gesture.location.x < 0 ? 0 : pos.x
+                        pos.y = gesture.location.y < 0 ? 0 : pos.y
+                        pos.x = gesture.location.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
+                        pos.y = gesture.location.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
+                        
+                        
+                        textModel.frame = CGSize(width: pos.x - textModel.position.x, height: pos.y - textModel.position.y)
+                        computePosition()
                     }
             )
     }
@@ -105,19 +105,26 @@ struct Editor: View {
                     context.fill(path, with: .color(.white))
                     
                     if let symbol = context.resolveSymbol(id: textModel.id) {
-                        DispatchQueue.main.async {
-                            if textModel.frame == nil {
+                        
+                        if let frame = textModel.frame {
+                            context.draw(symbol, in: CGRect(origin: textModel.position, size: frame))
+                        } else {
+                            DispatchQueue.main.async {
                                 textModel.frame = symbol.size
                             }
+                            context.draw(symbol, in: CGRect(origin: textModel.position, size: symbol.size))
                         }
-                        context.draw(symbol, in: CGRect(origin: textModel.position, size: symbol.size))
+                        
                     }
                     
                     
                 } symbols: {
-                    Text("foo bar")
-                        .foregroundColor(.red)
-                        .tag(textModel.id)
+                    VStack {
+                        Text("foo bar")
+                            .foregroundColor(.red)
+//                            .rotationEffect(.degrees(30))
+                    }
+                    .tag(textModel.id)
                 }
                 
                 MoveHandle(textModel: $textModel, externalGeometry: geometry)
