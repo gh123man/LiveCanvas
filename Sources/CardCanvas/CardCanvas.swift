@@ -4,63 +4,6 @@
 import SwiftUI
 import Foundation
 
-class LiveCanvasViewModel<ViewContext>: ObservableObject {
-    
-    @Published var viewModels: [ViewState<ViewContext>]
-    @Published var selectedIndex: Int? = nil
-    
-    var selected: Binding<ViewState<ViewContext>>? {
-        guard let selectedIndex = selectedIndex else {
-            return nil
-        }
-        return Binding(
-            get: {
-                self.viewModels[selectedIndex]
-            },
-            set: { newValue in
-                self.viewModels[selectedIndex] = newValue
-            }
-        )
-    }
-    
-    init(viewModels: [ViewState<ViewContext>] = []) {
-        self.viewModels = viewModels
-    }
-    
-    func add(_ viewModel: ViewState<ViewContext>) {
-        viewModels.append(viewModel)
-        selectedIndex = viewModels.count - 1
-    }
-    
-    func select(_ viewModel: ViewState<ViewContext>?) {
-        if let viewModel = viewModel {
-            selectedIndex = viewModels.firstIndex { $0.id == viewModel.id }
-        } else {
-            selectedIndex = nil
-        }
-    }
-    
-    func remove(_ viewModel: ViewState<ViewContext>) {
-        if let idx = viewModels.firstIndex(where: { $0.id == viewModel.id }) {
-            if selectedIndex == idx {
-                selectedIndex = nil
-            }
-            viewModels.remove(at: idx)
-        }
-    }
-    
-}
-
-struct ViewState<ViewContext>: Identifiable {
-    var frame: CGRect?
-    var id: UUID
-    var context: ViewContext
-    init(_ context: ViewContext) {
-        self.id = UUID()
-        self.context = context
-    }
-}
-
 
 struct LiveCanvas<Content: View, ViewContext>: View {
     
@@ -80,10 +23,10 @@ struct LiveCanvas<Content: View, ViewContext>: View {
                     let path = Rectangle().path(in: rect)
                     context.fill(path, with: .color(.white))
                     
-                    for i in viewModel.viewModels.indices {
-                        if let symbol = context.resolveSymbol(id: viewModel.viewModels[i].id) {
+                    for i in viewModel.views.indices {
+                        if let symbol = context.resolveSymbol(id: viewModel.views[i].id) {
                             
-                            if let frame = viewModel.viewModels[i].frame {
+                            if let frame = viewModel.views[i].frame {
                                 context.draw(symbol, in: CGRect(origin: frame.origin, size: frame.size))
                             } else {
                                 
@@ -91,7 +34,7 @@ struct LiveCanvas<Content: View, ViewContext>: View {
                                 DispatchQueue.main.async {
                                     
                                     // Set initial position
-                                    viewModel.viewModels[i].frame = CGRect(x: (geometry.size.width - symbol.size.width) / 2,
+                                    viewModel.views[i].frame = CGRect(x: (geometry.size.width - symbol.size.width) / 2,
                                                                  y: (geometry.size.height - symbol.size.height) / 2,
                                                                  width: symbol.size.width,
                                                                  height: symbol.size.height)
@@ -104,7 +47,7 @@ struct LiveCanvas<Content: View, ViewContext>: View {
                     }
                     
                 } symbols: {
-                    ForEach(viewModel.viewModels) { viewModel in
+                    ForEach(viewModel.views) { viewModel in
                         viewBuilder(viewModel.context)
                         .tag(viewModel.id)
                     }
@@ -112,9 +55,9 @@ struct LiveCanvas<Content: View, ViewContext>: View {
                     viewModel.select(nil)
                 }
                 
-                ForEach($viewModel.viewModels) { $vm in
+                ForEach($viewModel.views) { $vm in
                     TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
-                        viewModel.selectedIndex = viewModel.viewModels.firstIndex { $0.id == val.id } ?? 0
+                        viewModel.selectedIndex = viewModel.views.firstIndex { $0.id == val.id } ?? 0
                     }
                 }
                 
