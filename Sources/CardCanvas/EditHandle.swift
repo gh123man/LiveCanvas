@@ -8,9 +8,9 @@
 import Foundation
 import SwiftUI
 
-struct EditHandle: View {
+struct EditHandle<ViewContext>: View {
     
-    @Binding var viewModel: ViewModel
+    @Binding var viewModel: ViewModel<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     
@@ -47,7 +47,7 @@ struct EditHandle: View {
                 computePosition(frame: newValue)
             }
             .onTapGesture {
-                viewModel.onEdit?()
+                viewModel.edit()
             }
     }
 }

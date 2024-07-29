@@ -8,9 +8,9 @@
 import Foundation
 import SwiftUI
 
-struct SizeHandle: View {
+struct SizeHandle<ViewContext>: View {
     
-    @Binding var viewModel: ViewModel
+    @Binding var viewModel: ViewModel<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     

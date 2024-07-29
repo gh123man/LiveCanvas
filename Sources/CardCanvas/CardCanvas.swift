@@ -5,27 +5,31 @@ import SwiftUI
 import Foundation
 
 
-struct ViewModel: Identifiable {
-    var viewBuilder: () -> any View
+struct ViewModel<ViewContext>: Identifiable {
     var frame: CGRect?
     var id: UUID
-    var onEdit: (() -> ())?
+    var context: ViewContext
+    var onEdit: ((ViewContext) -> ViewContext)?
 
-    init<V: View>(viewBuilder: @escaping () -> V, onEdit: (() -> ())? = nil) {
-        self.viewBuilder = viewBuilder
+    init(_ context: ViewContext, onEdit: ((ViewContext) -> ViewContext)? = nil) {
         self.id = UUID()
+        self.context = context
         self.onEdit = onEdit
     }
     
+    mutating func edit() {
+        self.context = onEdit?(context) ?? context
+   }
 }
 
 
-struct Editor: View {
+struct Editor<Content: View, ViewContext>: View {
     
     @State var selectedGeometry: GeometryProxy? = nil
-    @State var viewModels: [ViewModel]
+    @State var viewModels: [ViewModel<ViewContext>]
     @State var selectedIndex = 0
     
+    var viewBuilder: (ViewContext) -> Content
     
     var body: some View {
         ZStack {
@@ -39,7 +43,6 @@ struct Editor: View {
                     context.fill(path, with: .color(.white))
                     
                     for i in viewModels.indices {
-                        
                         if let symbol = context.resolveSymbol(id: viewModels[i].id) {
                             
                             if let frame = viewModels[i].frame {
@@ -64,10 +67,7 @@ struct Editor: View {
                     
                 } symbols: {
                     ForEach(viewModels) { viewModel in
-                        VStack {
-                            AnyView(erasing: viewModel.viewBuilder())
-                                .fixedSize()
-                        }
+                        viewBuilder(viewModel.context)
                         .tag(viewModel.id)
                     }
                 }
@@ -91,42 +91,28 @@ struct Editor: View {
 
 struct DemoView: View {
     
+    enum MyViewContext {
+        case text(String)
+    }
+    
     @State var edit = false
     @State var text = "foobar"
+    
+    @State var models: [ViewModel<MyViewContext>] = [
+        ViewModel(.text("foo")) { context in
+            return .text("boop")
+        }
+    ]
+    
+    
     var body: some View {
         VStack {
-            Editor(viewModels: [
-                ViewModel {
-                    Text(text)
-                        .foregroundColor(.red)
-                        .onChange(of: text) { _ in
-                            print("text")
-                        }
-                } onEdit: {
-                    print("edit")
-                    text = "a"
-                    
-//                    edit.toggle()
-                    
-                },
-//                ViewModel {
-//                    Text("🌴")
-//                },
-//                ViewModel {
-//                    Image(systemName: "photo.artframe")
-//                        .resizable()
-//                        .frame(width: 200, height: 200)
-//                    
-//                },
-                
-            ])
-                .padding()
-                .contentShape(Rectangle())
-                .shadow(radius: 20)
-                .sheet(isPresented: $edit) {
-                    TextField("", text: $text)
+            Editor(viewModels: models ) { context in
+                switch context {
+                case let .text(txt):
+                    Text(txt)
                 }
-            
+            }
         }
     }
 }
