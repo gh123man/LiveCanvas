@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct MoveHandle<ViewContext>: View {
-    @Binding var selected: ViewModel<ViewContext>
+    @Binding var selected: ViewState<ViewContext>
     @State private var fingerPosition: CGPoint?
     var externalGeometry: GeometryProxy
     

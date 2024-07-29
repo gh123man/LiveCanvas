@@ -6,50 +6,63 @@ import Foundation
 
 class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
-    @Published var viewModels: [ViewModel<ViewContext>]
-    @Published var selectedIndex = 0
+    @Published var viewModels: [ViewState<ViewContext>]
+    @Published var selectedIndex: Int? = nil
     
-    var selected: Binding<ViewModel<ViewContext>> {
-        Binding(
+    var selected: Binding<ViewState<ViewContext>>? {
+        guard let selectedIndex = selectedIndex else {
+            return nil
+        }
+        return Binding(
             get: {
-                self.viewModels[self.selectedIndex]
+                self.viewModels[selectedIndex]
             },
             set: { newValue in
-                self.viewModels[self.selectedIndex] = newValue
+                self.viewModels[selectedIndex] = newValue
             }
         )
     }
     
-    init(viewModels: [ViewModel<ViewContext>] = []) {
+    init(viewModels: [ViewState<ViewContext>] = []) {
         self.viewModels = viewModels
     }
     
-    func add(_ viewModel: ViewModel<ViewContext>) {
+    func add(_ viewModel: ViewState<ViewContext>) {
         viewModels.append(viewModel)
+        selectedIndex = viewModels.count - 1
+    }
+    
+    func select(_ viewModel: ViewState<ViewContext>?) {
+        if let viewModel = viewModel {
+            selectedIndex = viewModels.firstIndex { $0.id == viewModel.id }
+        } else {
+            selectedIndex = nil
+        }
+    }
+    
+    func remove(_ viewModel: ViewState<ViewContext>) {
+        if let idx = viewModels.firstIndex(where: { $0.id == viewModel.id }) {
+            if selectedIndex == idx {
+                selectedIndex = nil
+            }
+            viewModels.remove(at: idx)
+        }
     }
     
 }
 
-struct ViewModel<ViewContext>: Identifiable {
+struct ViewState<ViewContext>: Identifiable {
     var frame: CGRect?
     var id: UUID
     var context: ViewContext
-//    var onEdit: ((ViewContext) -> ViewContext)?
-
-//    init(_ context: ViewContext, onEdit: ((ViewContext) -> ViewContext)? = nil) {
     init(_ context: ViewContext) {
         self.id = UUID()
         self.context = context
-//        self.onEdit = onEdit
     }
-    
-//    mutating func edit() {
-//        self.context = onEdit?(context) ?? context
-//   }
 }
 
 
-struct Editor<Content: View, ViewContext>: View {
+struct LiveCanvas<Content: View, ViewContext>: View {
     
     @State var selectedGeometry: GeometryProxy? = nil
     @ObservedObject var viewModel: LiveCanvasViewModel<ViewContext>
@@ -95,6 +108,8 @@ struct Editor<Content: View, ViewContext>: View {
                         viewBuilder(viewModel.context)
                         .tag(viewModel.id)
                     }
+                }.onTapGesture {
+                    viewModel.select(nil)
                 }
                 
                 ForEach($viewModel.viewModels) { $vm in
@@ -103,13 +118,14 @@ struct Editor<Content: View, ViewContext>: View {
                     }
                 }
                 
-                MoveHandle(selected: viewModel.selected, externalGeometry: geometry)
-                SizeHandle(selected: viewModel.selected, externalGeometry: geometry)
-                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
+                if let selected = viewModel.selected {
+                    MoveHandle(selected: selected, externalGeometry: geometry)
+                    SizeHandle(selected: selected, externalGeometry: geometry)
+                }
+//                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
             }
         }
         .aspectRatio(0.77, contentMode: .fit)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -124,29 +140,49 @@ struct DemoView: View {
     @State var text = "foobar"
     
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
-        ViewModel(.text("foo"))
+        ViewState(.text("foo"))
     ])
     
     
     var body: some View {
-        VStack {
-            Editor(viewModel: vm) { context in
+        VStack(spacing: 20) {
+            LiveCanvas(viewModel: vm) { context in
                 switch context {
                 case let .text(txt):
                     Text(txt)
                 }
             }
-            .padding()
             .contentShape(Rectangle())
             .shadow(radius: 20)
             
             HStack {
+                if let selected = vm.selected {
+                    Button("Edit") {
+                        
+                    }
+                    Button("Delete") {
+                        vm.remove(selected.wrappedValue)
+                    }
+                } else {
+                    Spacer()
+                    Text("Select something")
+                }
+                Spacer()
+
+            }
+            .padding()
+            .frame(height: 50)
+            .background(.white)
+            .cornerRadius(15)
+            .shadow(radius: 20)
+            
+            HStack {
                 Button("Add Text") {
-                    vm.add(ViewModel(.text("bar")))
+                    vm.add(ViewState(.text("bar")))
                 }
             }
         }
-        
+        .padding()
     }
 }
 #Preview {
