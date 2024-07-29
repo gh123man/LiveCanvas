@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Brian Floersch on 7/28/24.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct SizeHandle: View {
+struct EditHandle: View {
     
     @Binding var viewModel: ViewModel
     @State var handlePos: CGPoint = .zero
@@ -16,11 +16,11 @@ struct SizeHandle: View {
     
     let minSize = CGSize(width: 20, height: 20)
     
+    
     func computePosition(frame: CGRect? = nil) {
         if let frame = frame ?? viewModel.frame  {
-            handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
+            handlePos = boundsCheck(CGPoint(x: frame.origin.x, y: frame.origin.y))
         }
-        
     }
     
     func boundsCheck(_ inpt: CGPoint) -> CGPoint {
@@ -35,7 +35,7 @@ struct SizeHandle: View {
     var body: some View {
         Circle()
             .foregroundColor(.white)
-            .overlay(Image(systemName: "arrow.up.left.and.arrow.down.right")
+            .overlay(Image(systemName: "pencil")
                 .resizable()
                 .frame(width: 14, height: 14)
                 .foregroundColor(.black
@@ -46,27 +46,8 @@ struct SizeHandle: View {
             .onChange(of: viewModel.frame) { newValue in
                 computePosition(frame: newValue)
             }
-            .onAppear {
-                computePosition()
+            .onTapGesture {
+                viewModel.onEdit?()
             }
-            .gesture(
-                DragGesture()
-                    .onChanged { gesture in
-                        
-                        let pos = boundsCheck(gesture.location)
-                        
-                        var newFrame: CGSize = .zero
-                        if let frame = viewModel.frame {
-                            newFrame = CGSize(width: pos.x - frame.origin.x, height: pos.y - frame.origin.y)
-                        }
-                        
-                        // Enfornce mininmum size
-                        newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
-                        newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
-
-                        viewModel.frame?.size = newFrame
-                        computePosition()
-                    }
-            )
     }
 }

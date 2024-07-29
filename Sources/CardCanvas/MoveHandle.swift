@@ -32,6 +32,15 @@ struct MoveHandle: View {
         return CGSize(width: size.width / 2, height: size.height / 2)
     }
     
+    func boundsCheck(_ inpt: CGPoint) -> CGPoint {
+        var pos = inpt
+        pos.x = pos.x < 0 ? 0 : pos.x
+        pos.y = pos.y < 0 ? 0 : pos.y
+        pos.x = pos.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
+        pos.y = pos.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
+        return pos
+    }
+    
     var body: some View {
         Rectangle()
             .border(.blue)
@@ -48,11 +57,7 @@ struct MoveHandle: View {
                             fingerPosition = CGPoint(x: pos.x - position.x, y: pos.y - position.y)
                         }
 
-                        // Ensure stays within parent view bounds
-                        pos.x = gesture.location.x < 0 ? 0 : pos.x
-                        pos.y = gesture.location.y < 0 ? 0 : pos.y
-                        pos.x = gesture.location.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
-                        pos.y = gesture.location.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
+                        pos = boundsCheck(pos)
                         
                         if let fingerPosition = fingerPosition {
                             pos.x -= fingerPosition.x
