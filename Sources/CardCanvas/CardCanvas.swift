@@ -6,16 +6,17 @@ import Foundation
 
 
 struct ViewModel: Identifiable {
-    var view: AnyView
+    var viewBuilder: () -> any View
     var frame: CGRect?
     var id: UUID
     var onEdit: (() -> ())?
-    
-    init(viewBuilder: () -> some View, onEdit: (() -> ())? = nil) {
-        self.view = AnyView(erasing: viewBuilder())
+
+    init<V: View>(viewBuilder: @escaping () -> V, onEdit: (() -> ())? = nil) {
+        self.viewBuilder = viewBuilder
         self.id = UUID()
         self.onEdit = onEdit
     }
+    
 }
 
 
@@ -57,13 +58,14 @@ struct Editor: View {
                                 context.draw(symbol, in: CGRect(origin: frame.origin, size: frame.size))
                             }
                             
+                            
                         }
                     }
                     
                 } symbols: {
                     ForEach(viewModels) { viewModel in
                         VStack {
-                            viewModel.view
+                            AnyView(erasing: viewModel.viewBuilder())
                                 .fixedSize()
                         }
                         .tag(viewModel.id)
@@ -85,29 +87,49 @@ struct Editor: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-#Preview {
-    VStack {
-        Editor(viewModels: [
-            ViewModel {
-                Text("foobar")
-                    .foregroundColor(.red)
-            } onEdit: {
-                print("edit")
+
+
+struct DemoView: View {
+    
+    @State var edit = false
+    @State var text = "foobar"
+    var body: some View {
+        VStack {
+            Editor(viewModels: [
+                ViewModel {
+                    Text(text)
+                        .foregroundColor(.red)
+                        .onChange(of: text) { _ in
+                            print("text")
+                        }
+                } onEdit: {
+                    print("edit")
+                    text = "a"
+                    
+//                    edit.toggle()
+                    
+                },
+//                ViewModel {
+//                    Text("🌴")
+//                },
+//                ViewModel {
+//                    Image(systemName: "photo.artframe")
+//                        .resizable()
+//                        .frame(width: 200, height: 200)
+//                    
+//                },
                 
-            },
-            ViewModel {
-                Text("🌴")
-            },
-            ViewModel {
-                Image(systemName: "photo.artframe")
-                    .resizable()
-                    .frame(width: 200, height: 200)
-                
-            },
+            ])
+                .padding()
+                .contentShape(Rectangle())
+                .shadow(radius: 20)
+                .sheet(isPresented: $edit) {
+                    TextField("", text: $text)
+                }
             
-        ])
-            .padding()
-            .contentShape(Rectangle())
-            .shadow(radius: 20)
+        }
     }
+}
+#Preview {
+    DemoView()
 }
