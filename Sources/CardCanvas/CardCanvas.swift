@@ -4,30 +4,55 @@
 import SwiftUI
 import Foundation
 
+class LiveCanvasViewModel<ViewContext>: ObservableObject {
+    
+    @Published var viewModels: [ViewModel<ViewContext>]
+    @Published var selectedIndex = 0
+    
+    var selected: Binding<ViewModel<ViewContext>> {
+        Binding(
+            get: {
+                self.viewModels[self.selectedIndex]
+            },
+            set: { newValue in
+                self.viewModels[self.selectedIndex] = newValue
+            }
+        )
+    }
+    
+    init(viewModels: [ViewModel<ViewContext>] = []) {
+        self.viewModels = viewModels
+    }
+    
+    func add(_ viewModel: ViewModel<ViewContext>) {
+        viewModels.append(viewModel)
+    }
+    
+}
 
 struct ViewModel<ViewContext>: Identifiable {
     var frame: CGRect?
     var id: UUID
     var context: ViewContext
-    var onEdit: ((ViewContext) -> ViewContext)?
+//    var onEdit: ((ViewContext) -> ViewContext)?
 
-    init(_ context: ViewContext, onEdit: ((ViewContext) -> ViewContext)? = nil) {
+//    init(_ context: ViewContext, onEdit: ((ViewContext) -> ViewContext)? = nil) {
+    init(_ context: ViewContext) {
         self.id = UUID()
         self.context = context
-        self.onEdit = onEdit
+//        self.onEdit = onEdit
     }
     
-    mutating func edit() {
-        self.context = onEdit?(context) ?? context
-   }
+//    mutating func edit() {
+//        self.context = onEdit?(context) ?? context
+//   }
 }
 
 
 struct Editor<Content: View, ViewContext>: View {
     
     @State var selectedGeometry: GeometryProxy? = nil
-    @State var viewModels: [ViewModel<ViewContext>]
-    @State var selectedIndex = 0
+    @ObservedObject var viewModel: LiveCanvasViewModel<ViewContext>
     
     var viewBuilder: (ViewContext) -> Content
     
@@ -42,10 +67,10 @@ struct Editor<Content: View, ViewContext>: View {
                     let path = Rectangle().path(in: rect)
                     context.fill(path, with: .color(.white))
                     
-                    for i in viewModels.indices {
-                        if let symbol = context.resolveSymbol(id: viewModels[i].id) {
+                    for i in viewModel.viewModels.indices {
+                        if let symbol = context.resolveSymbol(id: viewModel.viewModels[i].id) {
                             
-                            if let frame = viewModels[i].frame {
+                            if let frame = viewModel.viewModels[i].frame {
                                 context.draw(symbol, in: CGRect(origin: frame.origin, size: frame.size))
                             } else {
                                 
@@ -53,7 +78,7 @@ struct Editor<Content: View, ViewContext>: View {
                                 DispatchQueue.main.async {
                                     
                                     // Set initial position
-                                    viewModels[i].frame = CGRect(x: (geometry.size.width - symbol.size.width) / 2,
+                                    viewModel.viewModels[i].frame = CGRect(x: (geometry.size.width - symbol.size.width) / 2,
                                                                  y: (geometry.size.height - symbol.size.height) / 2,
                                                                  width: symbol.size.width,
                                                                  height: symbol.size.height)
@@ -66,21 +91,21 @@ struct Editor<Content: View, ViewContext>: View {
                     }
                     
                 } symbols: {
-                    ForEach(viewModels) { viewModel in
+                    ForEach(viewModel.viewModels) { viewModel in
                         viewBuilder(viewModel.context)
                         .tag(viewModel.id)
                     }
                 }
                 
-                ForEach($viewModels) { $viewModel in
-                    TapHandle(viewModel: $viewModel, externalGeometry: geometry) { val in
-                        selectedIndex = viewModels.firstIndex { $0.id == val.id } ?? 0
+                ForEach($viewModel.viewModels) { $vm in
+                    TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
+                        viewModel.selectedIndex = viewModel.viewModels.firstIndex { $0.id == val.id } ?? 0
                     }
                 }
                 
-                MoveHandle(viewModel: $viewModels[selectedIndex], externalGeometry: geometry)
-                SizeHandle(viewModel: $viewModels[selectedIndex], externalGeometry: geometry)
-                EditHandle(viewModel: $viewModels[selectedIndex], externalGeometry: geometry)
+                MoveHandle(selected: viewModel.selected, externalGeometry: geometry)
+                SizeHandle(selected: viewModel.selected, externalGeometry: geometry)
+                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
             }
         }
         .aspectRatio(0.77, contentMode: .fit)
@@ -98,22 +123,30 @@ struct DemoView: View {
     @State var edit = false
     @State var text = "foobar"
     
-    @State var models: [ViewModel<MyViewContext>] = [
-        ViewModel(.text("foo")) { context in
-            return .text("boop")
-        }
-    ]
+    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
+        ViewModel(.text("foo"))
+    ])
     
     
     var body: some View {
         VStack {
-            Editor(viewModels: models ) { context in
+            Editor(viewModel: vm) { context in
                 switch context {
                 case let .text(txt):
                     Text(txt)
                 }
             }
+            .padding()
+            .contentShape(Rectangle())
+            .shadow(radius: 20)
+            
+            HStack {
+                Button("Add Text") {
+                    vm.add(ViewModel(.text("bar")))
+                }
+            }
         }
+        
     }
 }
 #Preview {

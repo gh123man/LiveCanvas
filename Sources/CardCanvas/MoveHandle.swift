@@ -9,20 +9,19 @@ import Foundation
 import SwiftUI
 
 struct MoveHandle<ViewContext>: View {
-    
-    @Binding var viewModel: ViewModel<ViewContext>
+    @Binding var selected: ViewModel<ViewContext>
     @State private var fingerPosition: CGPoint?
     var externalGeometry: GeometryProxy
     
     var size: CGSize {
-        guard let size = viewModel.frame?.size else {
+        guard let size = selected.frame?.size else {
             return .zero
         }
         return size
     }
     
     var position: CGPoint {
-        guard let origin = viewModel.frame?.origin else {
+        guard let origin = selected.frame?.origin else {
             return .zero
         }
         return origin
@@ -64,7 +63,7 @@ struct MoveHandle<ViewContext>: View {
                             pos.y -= fingerPosition.y
                         }
                         
-                        viewModel.frame?.origin = pos
+                        selected.frame?.origin = pos
                     }
                     .onEnded { _ in
                         fingerPosition = nil

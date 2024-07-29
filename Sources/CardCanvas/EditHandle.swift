@@ -10,7 +10,8 @@ import SwiftUI
 
 struct EditHandle<ViewContext>: View {
     
-    @Binding var viewModel: ViewModel<ViewContext>
+    @ObservedObject var viewModel: LiveCanvasViewModel<ViewContext>
+    @Binding var selected: ViewModel<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     
@@ -18,7 +19,7 @@ struct EditHandle<ViewContext>: View {
     
     
     func computePosition(frame: CGRect? = nil) {
-        if let frame = frame ?? viewModel.frame  {
+        if let frame = frame ?? selected.frame  {
             handlePos = boundsCheck(CGPoint(x: frame.origin.x, y: frame.origin.y))
         }
     }
@@ -43,11 +44,10 @@ struct EditHandle<ViewContext>: View {
             .frame(width: 24, height: 24)
             .position(handlePos)
             .shadow(radius: 5)
-            .onChange(of: viewModel.frame) { newValue in
+            .onChange(of: selected.frame) { newValue in
                 computePosition(frame: newValue)
             }
             .onTapGesture {
-                viewModel.edit()
             }
     }
 }

@@ -10,14 +10,14 @@ import SwiftUI
 
 struct SizeHandle<ViewContext>: View {
     
-    @Binding var viewModel: ViewModel<ViewContext>
+    @Binding var selected: ViewModel<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     
     let minSize = CGSize(width: 20, height: 20)
     
     func computePosition(frame: CGRect? = nil) {
-        if let frame = frame ?? viewModel.frame  {
+        if let frame = frame ?? selected.frame  {
             handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
         }
         
@@ -43,7 +43,7 @@ struct SizeHandle<ViewContext>: View {
             .frame(width: 24, height: 24)
             .position(handlePos)
             .shadow(radius: 5)
-            .onChange(of: viewModel.frame) { newValue in
+            .onChange(of: selected.frame) { newValue in
                 computePosition(frame: newValue)
             }
             .onAppear {
@@ -56,7 +56,7 @@ struct SizeHandle<ViewContext>: View {
                         let pos = boundsCheck(gesture.location)
                         
                         var newFrame: CGSize = .zero
-                        if let frame = viewModel.frame {
+                        if let frame = selected.frame {
                             newFrame = CGSize(width: pos.x - frame.origin.x, height: pos.y - frame.origin.y)
                         }
                         
@@ -64,7 +64,7 @@ struct SizeHandle<ViewContext>: View {
                         newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
                         newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
 
-                        viewModel.frame?.size = newFrame
+                        selected.frame?.size = newFrame
                         computePosition()
                     }
             )
