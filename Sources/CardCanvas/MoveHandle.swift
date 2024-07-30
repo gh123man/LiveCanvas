@@ -58,6 +58,7 @@ struct MoveHandle<ViewContext>: View {
 
                         pos = boundsCheck(pos)
                         
+                        // Correct movement to exact touch position
                         if let fingerPosition = fingerPosition {
                             pos.x -= fingerPosition.x
                             pos.y -= fingerPosition.y
