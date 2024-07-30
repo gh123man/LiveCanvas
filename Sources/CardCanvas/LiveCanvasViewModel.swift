@@ -17,6 +17,7 @@ struct ViewState<ViewContext>: Identifiable {
     
     enum Resize {
         case any
+        case proportional
         case disabled
     }
     

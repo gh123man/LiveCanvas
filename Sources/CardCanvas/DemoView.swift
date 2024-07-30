@@ -66,13 +66,16 @@ struct DemoView: View {
             
             HStack(spacing: 20) {
                 Button("Add Text") {
-                    vm.add(ViewState(.text("bar")))
+                    vm.add(ViewState(.text("bar 123123")))
                 }
                 Button("Add Image") {
-                    vm.add(ViewState(.image))
+                    vm.add(ViewState(.image, resize: .proportional))
                 }
                 Button("Add background") {
-                    vm.add(ViewState(.fullScreen, initialSize: .fill, movable: false, resize: .disabled),
+                    vm.add(ViewState(.fullScreen, 
+                                     initialSize: .fill,
+                                     movable: false,
+                                     resize: .disabled),
                            at: .bottom)
                 }
             }

@@ -78,7 +78,7 @@ struct LiveCanvas<Content: View, ViewContext>: View {
                     if selected.wrappedValue.movable {
                         MoveHandle(selected: selected, externalGeometry: geometry)
                     }
-                    if case .any = selected.wrappedValue.resize {
+                    if selected.wrappedValue.resize != .disabled {
                         SizeHandle(selected: selected, externalGeometry: geometry)
                     }
                 }
