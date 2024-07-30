@@ -13,6 +13,7 @@ struct DemoView: View {
     enum MyViewContext {
         case text(String)
         case image
+        case fullScreen
     }
     
     @State var edit = false
@@ -32,6 +33,8 @@ struct DemoView: View {
                     Text(txt)
                 case .image:
                     Text("🖕")
+                case .fullScreen:
+                    Image(systemName: "pencil.and.ruler")
                 }
             }
             .contentShape(Rectangle())
@@ -67,6 +70,10 @@ struct DemoView: View {
                 }
                 Button("Add Image") {
                     vm.add(ViewState(.image))
+                }
+                Button("Add background") {
+                    vm.add(ViewState(.fullScreen, initialSize: .fill, movable: false, resize: .disabled),
+                           at: .bottom)
                 }
             }
         }

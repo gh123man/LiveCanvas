@@ -9,16 +9,41 @@ import Foundation
 import SwiftUI
 
 struct ViewState<ViewContext>: Identifiable {
+    
+    enum InitialSize {
+        case fill
+        case intrinsic
+    }
+    
+    enum Resize {
+        case any
+        case disabled
+    }
+    
     var frame: CGRect?
     var id: UUID
     var context: ViewContext
-    init(_ context: ViewContext) {
+    var initialSize: InitialSize
+    var movable: Bool
+    var resize: Resize
+
+    
+    init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, movable: Bool = true, resize: Resize = .any) {
         self.id = UUID()
         self.context = context
+        self.initialSize = initialSize
+        self.movable = movable
+        self.resize = resize
     }
 }
 
 class LiveCanvasViewModel<ViewContext>: ObservableObject {
+    
+    enum Position {
+        case top
+        case bottom
+        case index(Int)
+    }
     
     @Published var views: [ViewState<ViewContext>]
     @Published var selectedIndex: Int? = nil
@@ -41,9 +66,18 @@ class LiveCanvasViewModel<ViewContext>: ObservableObject {
         self.views = viewModels
     }
     
-    func add(_ viewModel: ViewState<ViewContext>) {
-        views.append(viewModel)
-        selectedIndex = views.count - 1
+    func add(_ viewModel: ViewState<ViewContext>, at position: Position = .top) {
+        switch position {
+        case .top:
+            views.append(viewModel)
+            selectedIndex = views.count - 1
+        case .bottom:
+            views.insert(viewModel, at: 0)
+            selectedIndex = 0
+        case .index(let idx):
+            views.insert(viewModel, at: idx)
+            selectedIndex = idx
+        }
     }
     
     func select(_ viewModel: ViewState<ViewContext>?) {
