@@ -13,6 +13,7 @@ struct DemoView: View {
     enum MyViewContext {
         case text(String)
         case image
+        case recursiveSnapshot(UIImage)
         case fullScreen
     }
     
@@ -33,6 +34,8 @@ struct DemoView: View {
                     Text(txt)
                 case .image:
                     Text("🖕")
+                case .recursiveSnapshot(let img):
+                    Image(uiImage: img)
                 case .fullScreen:
                     Image(systemName: "pencil.and.ruler")
                 }
@@ -71,6 +74,11 @@ struct DemoView: View {
                 }
                 Button("Add Image") {
                     vm.add(ViewState(.image, resize: .proportional))
+                }
+                Button("Recursive") {
+                    if let img = vm.render() {
+                        vm.add(ViewState(.recursiveSnapshot(img), resize: .proportional))
+                    }
                 }
                 Button("Add background") {
                     vm.add(ViewState(.fullScreen,

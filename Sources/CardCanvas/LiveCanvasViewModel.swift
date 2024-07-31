@@ -48,6 +48,9 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     @Published public var views: [ViewState<ViewContext>]
     @Published var selectedIndex: Int? = nil
+    var size: CGSize?
+    
+    var snapshotFunc: (() -> UIImage?)?
     
     public var selected: Binding<ViewState<ViewContext>>? {
         guard let selectedIndex = selectedIndex else {
@@ -96,6 +99,10 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
             }
             views.remove(at: idx)
         }
+    }
+    
+    public func render() -> UIImage? {
+        return snapshotFunc?()
     }
     
 }
