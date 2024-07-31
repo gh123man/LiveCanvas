@@ -76,8 +76,9 @@ struct DemoView: View {
                     vm.add(ViewState(.image, resize: .proportional))
                 }
                 Button("Recursive") {
-                    if let img = vm.render() {
-                        vm.add(ViewState(.recursiveSnapshot(img), resize: .proportional))
+                    if let img = vm.render(to: CGSize(width: 100, height: 100)) {
+                        vm.add(ViewState(.recursiveSnapshot(img), 
+                                         resize: .proportional))
                     }
                 }
                 Button("Add background") {
