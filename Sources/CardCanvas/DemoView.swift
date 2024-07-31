@@ -37,6 +37,7 @@ struct DemoView: View {
                     Image(systemName: "pencil.and.ruler")
                 }
             }
+            .aspectRatio(0.77, contentMode: .fit)
             .contentShape(Rectangle())
             .shadow(radius: 20)
             
@@ -72,7 +73,7 @@ struct DemoView: View {
                     vm.add(ViewState(.image, resize: .proportional))
                 }
                 Button("Add background") {
-                    vm.add(ViewState(.fullScreen, 
+                    vm.add(ViewState(.fullScreen,
                                      initialSize: .fill,
                                      movable: false,
                                      resize: .disabled),

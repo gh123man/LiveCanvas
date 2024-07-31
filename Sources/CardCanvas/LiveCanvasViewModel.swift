@@ -8,28 +8,28 @@
 import Foundation
 import SwiftUI
 
-struct ViewState<ViewContext>: Identifiable {
+public struct ViewState<ViewContext>: Identifiable {
     
-    enum InitialSize {
+    public enum InitialSize {
         case fill
         case intrinsic
     }
     
-    enum Resize {
+    public enum Resize {
         case any
         case proportional
         case disabled
     }
     
-    var frame: CGRect?
-    var id: UUID
-    var context: ViewContext
-    var initialSize: InitialSize
-    var movable: Bool
-    var resize: Resize
+    public var frame: CGRect?
+    public var id: UUID
+    public var context: ViewContext
+    public var initialSize: InitialSize
+    public var movable: Bool
+    public var resize: Resize
 
     
-    init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, movable: Bool = true, resize: Resize = .any) {
+    public init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, movable: Bool = true, resize: Resize = .any) {
         self.id = UUID()
         self.context = context
         self.initialSize = initialSize
@@ -38,18 +38,18 @@ struct ViewState<ViewContext>: Identifiable {
     }
 }
 
-class LiveCanvasViewModel<ViewContext>: ObservableObject {
+public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
-    enum Position {
+    public enum Position {
         case top
         case bottom
         case index(Int)
     }
     
-    @Published var views: [ViewState<ViewContext>]
+    @Published public var views: [ViewState<ViewContext>]
     @Published var selectedIndex: Int? = nil
     
-    var selected: Binding<ViewState<ViewContext>>? {
+    public var selected: Binding<ViewState<ViewContext>>? {
         guard let selectedIndex = selectedIndex else {
             return nil
         }
@@ -63,11 +63,11 @@ class LiveCanvasViewModel<ViewContext>: ObservableObject {
         )
     }
     
-    init(viewModels: [ViewState<ViewContext>] = []) {
+    public init(viewModels: [ViewState<ViewContext>] = []) {
         self.views = viewModels
     }
     
-    func add(_ viewModel: ViewState<ViewContext>, at position: Position = .top) {
+    public func add(_ viewModel: ViewState<ViewContext>, at position: Position = .top) {
         switch position {
         case .top:
             views.append(viewModel)
@@ -81,7 +81,7 @@ class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    func select(_ viewModel: ViewState<ViewContext>?) {
+    public func select(_ viewModel: ViewState<ViewContext>?) {
         if let viewModel = viewModel {
             selectedIndex = views.firstIndex { $0.id == viewModel.id }
         } else {
@@ -89,7 +89,7 @@ class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    func remove(_ viewModel: ViewState<ViewContext>) {
+    public func remove(_ viewModel: ViewState<ViewContext>) {
         if let idx = views.firstIndex(where: { $0.id == viewModel.id }) {
             if selectedIndex == idx {
                 selectedIndex = nil

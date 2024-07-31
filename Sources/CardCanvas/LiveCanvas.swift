@@ -4,15 +4,17 @@
 import SwiftUI
 import Foundation
 
-
-struct LiveCanvas<Content: View, ViewContext>: View {
+public struct LiveCanvas<Content: View, ViewContext>: View {
     
-    @State var selectedGeometry: GeometryProxy? = nil
-    @ObservedObject var viewModel: LiveCanvasViewModel<ViewContext>
+    @ObservedObject public var viewModel: LiveCanvasViewModel<ViewContext>
+    @ViewBuilder public var viewBuilder: (ViewContext) -> Content
     
-    @ViewBuilder var viewBuilder: (ViewContext) -> Content
+    public init(viewModel: LiveCanvasViewModel<ViewContext>, @ViewBuilder viewBuilder: @escaping (ViewContext) -> Content) {
+        self.viewModel = viewModel
+        self.viewBuilder = viewBuilder
+    }
     
-    var body: some View {
+    public var body: some View {
         ZStack {
             GeometryReader { geometry in
                 Canvas(
@@ -86,8 +88,6 @@ struct LiveCanvas<Content: View, ViewContext>: View {
 //                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
             }
         }
-        // TODO: Set aspect ration from vm
-        .aspectRatio(0.77, contentMode: .fit)
     }
 }
 
