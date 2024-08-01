@@ -48,6 +48,11 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case index(Int)
     }
     
+    public enum LayerPosition {
+        case up, down, top, bottom
+        case to(index: Int)
+    }
+    
     public enum Alignment {
         case left, right, top, bottom, horizontal, vertical, center
     }
@@ -100,7 +105,6 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public func get(index: Int) -> Binding<Layer<ViewContext>> {
-        
         // Index is unstable due to reordering so capture the ID and lookup the index
         // so returned bindings are consistent.
         let id = idFor(index: index)
@@ -138,13 +142,26 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    public func align(_ viewModel: Binding<Layer<ViewContext>>, position: Alignment) {
+    public func moveLayer(_ viewModel: Binding<Layer<ViewContext>>, position: LayerPosition) {
+        let index = indexFor(id: viewModel.id)
+        switch position {
+        case .up:
+            layers.moveUp(from: index)
+        case .down:
+            layers.moveDown(from: index)
+        case .top:
+            layers.moveToTop(from: index)
+        case .bottom:
+            layers.moveToBottom(from: index)
+        case .to(let toIndex):
+            layers.move(from: index, to: toIndex)
+        }
+    }
+    
+    public func align(_ viewModel: Binding<Layer<ViewContext>>, to position: Alignment) {
         guard let size = size else {
             return
         }
-//        guard let idx = views.firstIndex(where: { $0.id == viewModel.id }) else {
-//            return
-//        }
         switch position {
         case .left:
             viewModel.wrappedValue.frame.origin.x = 0

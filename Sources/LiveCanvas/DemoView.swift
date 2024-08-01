@@ -46,67 +46,94 @@ struct DemoView: View {
             .contentShape(Rectangle())
             .shadow(radius: 20)
             
-            HStack {
-                if let selected = vm.selected {
-                    if case let .text(val) = selected.wrappedValue.context {
+            ScrollView(.horizontal) {
+                HStack {
+                    if let selected = vm.selected {
+                        if case let .text(val) = selected.wrappedValue.context {
+                            Button(action: {
+                                showEditText.toggle()
+                                
+                                editText = val
+                            }, label: {
+                                Image(systemName: "pencil.circle.fill")
+                            })
+                        }
+                        // Delete
                         Button(action: {
-                            showEditText.toggle()
-                            
-                            editText = val
+                            vm.remove(selected)
                         }, label: {
-                            Image(systemName: "pencil.circle.fill")
+                            Image(systemName: "trash.fill")
                         })
+                        
+                        // Alignment
+                        Button(action: {
+                            vm.align(selected, to: .center)
+                        }, label: {
+                            Image(systemName: "rectangle.center.inset.filled")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .horizontal)
+                        }, label: {
+                            Image(systemName: "align.horizontal.center.fill")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .vertical)
+                        }, label: {
+                            Image(systemName: "align.vertical.center.fill")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .left)
+                        }, label: {
+                            Image(systemName: "align.horizontal.left.fill")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .right)
+                        }, label: {
+                            Image(systemName: "align.horizontal.right.fill")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .top)
+                        }, label: {
+                            Image(systemName: "align.vertical.top.fill")
+                        })
+                        Button(action: {
+                            vm.align(selected, to: .bottom)
+                        }, label: {
+                            Image(systemName: "align.vertical.bottom.fill")
+                        })
+                        
+                        // Layers
+                        Button(action: {
+                            vm.moveLayer(selected, position: .up)
+                        }, label: {
+                            Image(systemName: "square.2.layers.3d.top.filled")
+                        })
+                        Button(action: {
+                            vm.moveLayer(selected, position: .down)
+                        }, label: {
+                            Image(systemName: "square.2.layers.3d.bottom.filled")
+                        })
+                        Button(action: {
+                            vm.moveLayer(selected, position: .top)
+                        }, label: {
+                            Image(systemName: "square.3.layers.3d.top.filled")
+                        })
+                        Button(action: {
+                            vm.moveLayer(selected, position: .bottom)
+                        }, label: {
+                            Image(systemName: "square.3.layers.3d.bottom.filled")
+                        })
+                        
+                        
+                        
+                    } else {
+                        Spacer()
+                        Text("Select something")
                     }
-                    Button(action: {
-                        vm.remove(selected)
-                    }, label: {
-                        Image(systemName: "trash.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .center)
-                    }, label: {
-                        Image(systemName: "rectangle.center.inset.filled")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .horizontal)
-                    }, label: {
-                        Image(systemName: "align.horizontal.center.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .vertical)
-                    }, label: {
-                        Image(systemName: "align.vertical.center.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .left)
-                    }, label: {
-                        Image(systemName: "align.horizontal.left.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .right)
-                    }, label: {
-                        Image(systemName: "align.horizontal.right.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .top)
-                    }, label: {
-                        Image(systemName: "align.vertical.top.fill")
-                    })
-                    Button(action: {
-                        vm.align(selected, position: .bottom)
-                    }, label: {
-                        Image(systemName: "align.vertical.bottom.fill")
-                    })
-                    
-                   
-                    
-                } else {
                     Spacer()
-                    Text("Select something")
                 }
-                Spacer()
+                .padding()
             }
-            .padding()
             .frame(height: 50)
             .background(.white)
             .cornerRadius(15)
