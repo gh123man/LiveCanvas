@@ -11,9 +11,9 @@ import SwiftUI
 
 struct TapHandle<ViewContext>: View {
     
-    @Binding var viewModel: ViewState<ViewContext>
+    @Binding var viewModel: Layer<ViewContext>
     var externalGeometry: GeometryProxy
-    var onTap: (Binding<ViewState<ViewContext>>) -> ()
+    var onTap: (Binding<Layer<ViewContext>>) -> ()
     
     var size: CGSize {
         return viewModel.frame.size

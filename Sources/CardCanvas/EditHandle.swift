@@ -11,7 +11,7 @@ import SwiftUI
 struct EditHandle<ViewContext>: View {
     
     @ObservedObject var viewModel: LiveCanvasViewModel<ViewContext>
-    @Binding var selected: ViewState<ViewContext>
+    @Binding var selected: Layer<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     

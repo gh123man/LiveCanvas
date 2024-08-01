@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-public struct ViewState<ViewContext>: Identifiable {
+public struct Layer<ViewContext>: Identifiable {
     
     public enum InitialSize {
         case fill
@@ -50,65 +50,65 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case left, right, top, bottom, horizontal, vertical, center
     }
     
-    @Published public var views: [ViewState<ViewContext>]
-    @Published var selectedIndex: Int? = nil
+    @Published public var layers: [Layer<ViewContext>]
     var size: CGSize?
     public var canvasSize: CGSize? {
         return size
     }
     
     var snapshotFunc: ((CGSize?) -> UIImage?)?
+    @Published public var selected: Binding<Layer<ViewContext>>?
     
-    public var selected: Binding<ViewState<ViewContext>>? {
-        guard let selectedIndex = selectedIndex else {
-            return nil
+    public init(viewModels: [Layer<ViewContext>] = []) {
+        self.layers = viewModels
+    }
+    
+    public func add(_ viewModel: Layer<ViewContext>, at position: Position = .top) {
+        switch position {
+        case .top:
+            layers.append(viewModel)
+            select(index: layers.count - 1)
+        case .bottom:
+            layers.insert(viewModel, at: 0)
+            select(index: 0)
+        case .index(let idx):
+            layers.insert(viewModel, at: idx)
+            select(index: idx)
         }
-        return Binding(
+    }
+    
+    public func select(_ viewModel: Binding<Layer<ViewContext>>?) {
+        if let viewModel = viewModel {
+            guard let index = layers.firstIndex(where: { $0.id == viewModel.id }) else {
+                return
+            }
+            select(index: index)
+        } else {
+            selected = nil
+        }
+    }
+    
+    public func select(index: Int) {
+        selected = Binding(
             get: {
-                self.views[selectedIndex]
+                self.layers[index]
             },
             set: { newValue in
-                self.views[selectedIndex] = newValue
+                self.layers[index] = newValue
             }
         )
     }
     
-    public init(viewModels: [ViewState<ViewContext>] = []) {
-        self.views = viewModels
-    }
-    
-    public func add(_ viewModel: ViewState<ViewContext>, at position: Position = .top) {
-        switch position {
-        case .top:
-            views.append(viewModel)
-            selectedIndex = views.count - 1
-        case .bottom:
-            views.insert(viewModel, at: 0)
-            selectedIndex = 0
-        case .index(let idx):
-            views.insert(viewModel, at: idx)
-            selectedIndex = idx
-        }
-    }
-    
-    public func select(_ viewModel: ViewState<ViewContext>?) {
-        if let viewModel = viewModel {
-            selectedIndex = views.firstIndex { $0.id == viewModel.id }
-        } else {
-            selectedIndex = nil
-        }
-    }
-    
-    public func remove(_ viewModel: ViewState<ViewContext>) {
-        if let idx = views.firstIndex(where: { $0.id == viewModel.id }) {
-            if selectedIndex == idx {
-                selectedIndex = nil
+    public func remove(_ viewModel: Binding<Layer<ViewContext>>) {
+        if let idx = layers.firstIndex(where: { $0.id == viewModel.id }) {
+            if selected?.wrappedValue.id == viewModel.id {
+                selected = nil
             }
-            views.remove(at: idx)
+            layers.remove(at: idx)
         }
     }
     
-    public func align(_ viewModel: Binding<ViewState<ViewContext>>, position: Alignment) {
+    public func align(_ viewModel: Binding<Layer<ViewContext>>, position: Alignment) {
         guard let size = size else {
             return
         }

@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SizeHandle<ViewContext>: View {
     
-    @Binding var selected: ViewState<ViewContext>
+    @Binding var selected: Layer<ViewContext>
     @State var handlePos: CGPoint = .zero
     var externalGeometry: GeometryProxy
     

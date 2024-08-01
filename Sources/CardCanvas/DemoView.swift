@@ -22,7 +22,7 @@ struct DemoView: View {
     @State var showEditText = false
     
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
-        ViewState(.text("foo"))
+        Layer(.text("foo"))
     ])
     
     
@@ -54,7 +54,7 @@ struct DemoView: View {
                         }
                     }
                     Button("Delete") {
-                        vm.remove(selected.wrappedValue)
+                        vm.remove(selected)
                     }
                 } else {
                     Spacer()
@@ -70,19 +70,19 @@ struct DemoView: View {
             
             HStack(spacing: 20) {
                 Button("Add Text") {
-                    vm.add(ViewState(.text("bar 123123")))
+                    vm.add(Layer(.text("bar 123123")))
                 }
                 Button("Add Image") {
-                    vm.add(ViewState(.image, resize: .proportional))
+                    vm.add(Layer(.image, resize: .proportional))
                 }
                 Button("Recursive") {
                     if let img = vm.render(to: CGSize(width: 100, height: 100)) {
-                        vm.add(ViewState(.recursiveSnapshot(img), 
+                        vm.add(Layer(.recursiveSnapshot(img), 
                                          resize: .proportional))
                     }
                 }
                 Button("Add background") {
-                    vm.add(ViewState(.fullScreen,
+                    vm.add(Layer(.fullScreen,
                                      initialSize: .fill,
                                      movable: false,
                                      resize: .disabled),

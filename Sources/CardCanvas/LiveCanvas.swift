@@ -30,17 +30,17 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
             let path = Rectangle().path(in: rect)
             context.fill(path, with: .color(.white))
             
-            for i in viewModel.views.indices {
+            for i in viewModel.layers.indices {
                 
-                if let symbol = context.resolveSymbol(id: viewModel.views[i].id) {
-                    if viewModel.views[i].frame != .null {
-                        let frame = viewModel.views[i].frame
+                if let symbol = context.resolveSymbol(id: viewModel.layers[i].id) {
+                    if viewModel.layers[i].frame != .null {
+                        let frame = viewModel.layers[i].frame
                         context.draw(symbol, in: CGRect(origin: frame.origin, size: frame.size).mul(offset))
                         
                     } else {
                         
                         let frame: CGRect
-                        switch viewModel.views[i].initialSize {
+                        switch viewModel.layers[i].initialSize {
                         case .fill:
                             // Fill the frame
                             frame = CGRect(origin: .zero, size: size)
@@ -52,7 +52,7 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                         
                         DispatchQueue.main.async {
                             // Set initial position
-                            viewModel.views[i].frame = frame
+                            viewModel.layers[i].frame = frame
                         }
                         context.draw(symbol, in: frame.mul(offset))
                     }
@@ -60,7 +60,7 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
             }
             
         } symbols: {
-            ForEach(viewModel.views) { viewModel in
+            ForEach(viewModel.layers) { viewModel in
                 viewBuilder(viewModel.context)
                 .tag(viewModel.id)
             }
@@ -78,9 +78,9 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                     }
                 }
                 
-                ForEach($viewModel.views) { $vm in
+                ForEach($viewModel.layers) { $vm in
                     TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
-                        viewModel.selectedIndex = viewModel.views.firstIndex { $0.id == val.id } ?? 0
+                        viewModel.select(val)
                     }
                 }
                 
@@ -92,7 +92,6 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                         SizeHandle(selected: selected, externalGeometry: geometry)
                     }
                 }
-                    
                 // Not needed?
 //                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
             }
