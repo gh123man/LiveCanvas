@@ -46,9 +46,16 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case index(Int)
     }
     
+    public enum Alignment {
+        case left, right, top, bottom, horizontal, vertical, center
+    }
+    
     @Published public var views: [ViewState<ViewContext>]
     @Published var selectedIndex: Int? = nil
     var size: CGSize?
+    public var canvasSize: CGSize? {
+        return size
+    }
     
     var snapshotFunc: ((CGSize?) -> UIImage?)?
     
@@ -98,6 +105,31 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
                 selectedIndex = nil
             }
             views.remove(at: idx)
+        }
+    }
+    
+    public func align(_ viewModel: ViewState<ViewContext>, position: Alignment) {
+        guard let size = size else {
+            return
+        }
+        guard let idx = views.firstIndex(where: { $0.id == viewModel.id }) else {
+            return
+        }
+        switch position {
+        case .left:
+            views[idx].frame?.origin.x = 0
+        case .right:
+            views[idx].frame?.origin.x = views[idx].frame?.width ?? 0
+        case .top:
+            views[idx].frame?.origin.y = 0
+        case .bottom:
+            views[idx].frame?.origin.y = views[idx].frame?.height ?? 0
+        case .horizontal:
+            break
+        case .vertical:
+            break
+        case .center:
+            break
         }
     }
     
