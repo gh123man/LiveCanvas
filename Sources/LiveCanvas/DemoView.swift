@@ -114,12 +114,12 @@ struct DemoView: View {
                             Image(systemName: "square.2.layers.3d.bottom.filled")
                         })
                         Button(action: {
-                            vm.moveLayer(selected, position: .top)
+                            vm.moveLayer(selected, position: .front)
                         }, label: {
                             Image(systemName: "square.3.layers.3d.top.filled")
                         })
                         Button(action: {
-                            vm.moveLayer(selected, position: .bottom)
+                            vm.moveLayer(selected, position: .back)
                         }, label: {
                             Image(systemName: "square.3.layers.3d.bottom.filled")
                         })

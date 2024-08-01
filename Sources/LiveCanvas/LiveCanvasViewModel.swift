@@ -49,7 +49,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public enum LayerPosition {
-        case up, down, top, bottom
+        case up, down, front, back
         case to(index: Int)
     }
     
@@ -149,9 +149,9 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
             layers.moveUp(from: index)
         case .down:
             layers.moveDown(from: index)
-        case .top:
+        case .front:
             layers.moveToTop(from: index)
-        case .bottom:
+        case .back:
             layers.moveToBottom(from: index)
         case .to(let toIndex):
             layers.move(from: index, to: toIndex)
