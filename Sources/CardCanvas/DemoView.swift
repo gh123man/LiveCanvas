@@ -21,7 +21,8 @@ struct DemoView: View {
     @State var editText = ""
     @State var showEditText = false
     @State var background: Binding<Layer<MyViewContext>>?
-    
+    @State var lastView: Binding<Layer<MyViewContext>>?
+
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
         Layer(.text("Nora Rocks 🐱"))
     ])
@@ -48,15 +49,57 @@ struct DemoView: View {
             HStack {
                 if let selected = vm.selected {
                     if case let .text(val) = selected.wrappedValue.context {
-                        Button("Edit") {
+                        Button(action: {
                             showEditText.toggle()
                             
                             editText = val
-                        }
+                        }, label: {
+                            Image(systemName: "pencil.circle.fill")
+                        })
                     }
-                    Button("Delete") {
+                    Button(action: {
                         vm.remove(selected)
-                    }
+                    }, label: {
+                        Image(systemName: "trash.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .center)
+                    }, label: {
+                        Image(systemName: "rectangle.center.inset.filled")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .horizontal)
+                    }, label: {
+                        Image(systemName: "align.horizontal.center.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .vertical)
+                    }, label: {
+                        Image(systemName: "align.vertical.center.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .left)
+                    }, label: {
+                        Image(systemName: "align.horizontal.left.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .right)
+                    }, label: {
+                        Image(systemName: "align.horizontal.right.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .top)
+                    }, label: {
+                        Image(systemName: "align.vertical.top.fill")
+                    })
+                    Button(action: {
+                        vm.align(selected, position: .bottom)
+                    }, label: {
+                        Image(systemName: "align.vertical.bottom.fill")
+                    })
+                    
+                   
+                    
                 } else {
                     Spacer()
                     Text("Select something")
@@ -71,7 +114,7 @@ struct DemoView: View {
             
             HStack(spacing: 20) {
                 Button("Add Text") {
-                    vm.add(Layer(.text("bar 123123")))
+                    lastView = vm.add(Layer(.text("bar 123123")))
                 }
                 Button("Add Emoji") {
                     vm.add(Layer(.image, resize: .proportional))
@@ -80,6 +123,12 @@ struct DemoView: View {
                     if let img = vm.render(to: CGSize(width: 100, height: 100)) {
                         vm.add(Layer(.recursiveSnapshot(img),
                                      resize: .proportional))
+                    }
+                }
+                if let lastView = lastView {
+                    Button("Delete last view") {
+                        vm.remove(lastView)
+                        self.lastView = nil
                     }
                 }
             }

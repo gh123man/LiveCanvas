@@ -83,13 +83,27 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
+    private func idFor(index: Int) -> UUID {
+        return layers[index].id
+    }
+    
+    // Unsafe - this function assumes the ID exists in the layers.
+    // careful internal use only
+    private func indexFor(id: UUID) -> Int {
+        layers.firstIndex(where: { $0.id == id })!
+    }
+    
     public func get(index: Int) -> Binding<Layer<ViewContext>> {
+        
+        // Index is unstable due to reordering so capture the ID and lookup the index
+        // so returned bindings are consistent.
+        let id = idFor(index: index)
         return Binding(
             get: {
-                self.layers[index]
+                self.layers[self.indexFor(id: id)]
             },
             set: { newValue in
-                self.layers[index] = newValue
+                self.layers[self.indexFor(id: id)] = newValue
             }
         )
     }
@@ -106,14 +120,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public func select(index: Int) {
-        selected = Binding(
-            get: {
-                self.layers[index]
-            },
-            set: { newValue in
-                self.layers[index] = newValue
-            }
-        )
+        selected = get(index: index)
     }
     
     public func remove(_ viewModel: Binding<Layer<ViewContext>>) {
@@ -136,17 +143,18 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case .left:
             viewModel.wrappedValue.frame.origin.x = 0
         case .right:
-            viewModel.wrappedValue.frame.origin.x = viewModel.wrappedValue.frame.width
+            viewModel.wrappedValue.frame.origin.x = size.width - viewModel.wrappedValue.frame.width
         case .top:
             viewModel.wrappedValue.frame.origin.y = 0
         case .bottom:
-            viewModel.wrappedValue.frame.origin.y = viewModel.wrappedValue.frame.height
+            viewModel.wrappedValue.frame.origin.y = size.height - viewModel.wrappedValue.frame.height
         case .horizontal:
-            break // TODO
+            viewModel.wrappedValue.frame.origin.x = (size.width - viewModel.wrappedValue.frame.size.width) / 2
         case .vertical:
-            break // TODO
+            viewModel.wrappedValue.frame.origin.y = (size.height - viewModel.wrappedValue.frame.size.height) / 2
         case .center:
-            break // TODO
+            viewModel.wrappedValue.frame.origin.x = (size.width - viewModel.wrappedValue.frame.size.width) / 2
+            viewModel.wrappedValue.frame.origin.y = (size.height - viewModel.wrappedValue.frame.size.height) / 2
         }
     }
     
