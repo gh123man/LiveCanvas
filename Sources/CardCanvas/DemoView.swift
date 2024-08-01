@@ -23,7 +23,7 @@ struct DemoView: View {
     @State var background: Binding<Layer<MyViewContext>>?
     
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
-        Layer(.text("foo"))
+        Layer(.text("Nora Rocks 🐱"))
     ])
     
     
@@ -73,28 +73,39 @@ struct DemoView: View {
                 Button("Add Text") {
                     vm.add(Layer(.text("bar 123123")))
                 }
-                Button("Add Image") {
+                Button("Add Emoji") {
                     vm.add(Layer(.image, resize: .proportional))
                 }
-                Button("Recursive") {
+                Button("Render Snapshot") {
                     if let img = vm.render(to: CGSize(width: 100, height: 100)) {
-                        vm.add(Layer(.recursiveSnapshot(img), 
-                                         resize: .proportional))
+                        vm.add(Layer(.recursiveSnapshot(img),
+                                     resize: .proportional))
                     }
                 }
-                Button("Add background") {
-                    if background == nil {
-                        // Store a mutable reference to the background
-                        background = vm.add(Layer(.fullScreen,
-                                                  initialSize: .fill,
-                                                  movable: false,
-                                                  resize: .disabled),
-                                            at: .bottom)
-                    }
-                }
+            }
+            
+            // handle specific layers in their own way - like the background.
+            HStack(spacing: 20) {
                 if let background = background {
                     Button("mutate background") {
+                        // Can change the type of a layer at any time
                         background.wrappedValue.context = .text("Foo")
+                    }
+                    Button("Delete background") {
+                        vm.remove(background)
+                        self.background = nil
+                    }
+                } else {
+                    Button("Add background") {
+                        if background == nil {
+                            // Store a mutable reference to the background
+                            background = vm.add(Layer(.fullScreen,
+                                                      initialSize: .fill,
+                                                      selectable: false,
+                                                      movable: false,
+                                                      resize: .disabled),
+                                                at: .back)
+                        }
                     }
                 }
             }

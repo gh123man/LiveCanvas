@@ -79,8 +79,10 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                 }
                 
                 ForEach($viewModel.layers) { $vm in
-                    TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
-                        viewModel.select(val)
+                    if vm.selectable {
+                        TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
+                            viewModel.select(val)
+                        }
                     }
                 }
                 

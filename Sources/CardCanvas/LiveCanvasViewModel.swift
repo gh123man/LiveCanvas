@@ -26,13 +26,15 @@ public struct Layer<ViewContext>: Identifiable {
     public var context: ViewContext
     public var initialSize: InitialSize
     public var movable: Bool
+    public var selectable: Bool
     public var resize: Resize
 
     
-    public init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, movable: Bool = true, resize: Resize = .any) {
+    public init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
         self.id = UUID()
         self.context = context
         self.initialSize = initialSize
+        self.selectable = selectable
         self.movable = movable
         self.resize = resize
     }
@@ -40,9 +42,9 @@ public struct Layer<ViewContext>: Identifiable {
 
 public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
-    public enum Position {
-        case top
-        case bottom
+    public enum Level {
+        case front
+        case back
         case index(Int)
     }
     
@@ -64,13 +66,13 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     @discardableResult
-    public func add(_ viewModel: Layer<ViewContext>, at position: Position = .top) -> Binding<Layer<ViewContext>> {
+    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> Binding<Layer<ViewContext>> {
         switch position {
-        case .top:
+        case .front:
             layers.append(viewModel)
             select(index: layers.count - 1)
             return get(index: layers.count - 1)
-        case .bottom:
+        case .back:
             layers.insert(viewModel, at: 0)
             select(index: 0)
             return get(index: 0)
@@ -140,11 +142,11 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case .bottom:
             viewModel.wrappedValue.frame.origin.y = viewModel.wrappedValue.frame.height
         case .horizontal:
-            break
+            break // TODO
         case .vertical:
-            break
+            break // TODO
         case .center:
-            break
+            break // TODO
         }
     }
     
