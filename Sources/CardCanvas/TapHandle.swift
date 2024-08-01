@@ -16,17 +16,11 @@ struct TapHandle<ViewContext>: View {
     var onTap: (Binding<ViewState<ViewContext>>) -> ()
     
     var size: CGSize {
-        guard let size = viewModel.frame?.size else {
-            return .zero
-        }
-        return size
+        return viewModel.frame.size
     }
     
     var position: CGPoint {
-        guard let origin = viewModel.frame?.origin else {
-            return .zero
-        }
-        return origin
+        return viewModel.frame.origin 
     }
     
     var offset: CGSize {

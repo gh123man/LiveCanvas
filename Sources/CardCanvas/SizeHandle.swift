@@ -17,10 +17,8 @@ struct SizeHandle<ViewContext>: View {
     let minSize = CGSize(width: 20, height: 20)
     
     func computePosition(frame: CGRect? = nil) {
-        if let frame = frame ?? selected.frame  {
-            handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
-        }
-        
+        let frame = frame ?? selected.frame
+        handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
     }
     
     func boundsCheck(_ inpt: CGPoint) -> CGPoint {
@@ -57,20 +55,15 @@ struct SizeHandle<ViewContext>: View {
                         
                         switch selected.resize {
                         case .any:
-                            var newFrame: CGSize = .zero
-                            if let frame = selected.frame {
-                                newFrame = CGSize(width: pos.x - frame.origin.x, height: pos.y - frame.origin.y)
-                            }
+                            var newFrame: CGSize = CGSize(width: pos.x - selected.frame .origin.x, height: pos.y - selected.frame .origin.y)
                             
                             // Enfornce mininmum size
                             newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
                             newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
 
-                            selected.frame?.size = newFrame
+                            selected.frame.size = newFrame
                         case .proportional:
-                            guard let frame = selected.frame else {
-                                return
-                            }
+                            let frame = selected.frame
                             
                             let wChange = pos.x - frame.origin.x
                             let hChange = pos.y - frame.origin.y
@@ -86,7 +79,7 @@ struct SizeHandle<ViewContext>: View {
 
                             }
                             
-                            selected.frame?.size = newFrame
+                            selected.frame.size = newFrame
                         default: break
                             
                         }

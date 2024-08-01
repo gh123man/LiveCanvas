@@ -31,15 +31,15 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
             context.fill(path, with: .color(.white))
             
             for i in viewModel.views.indices {
+                
                 if let symbol = context.resolveSymbol(id: viewModel.views[i].id) {
-                    
-                    if let frame = viewModel.views[i].frame {
+                    if viewModel.views[i].frame != .null {
+                        let frame = viewModel.views[i].frame
                         context.draw(symbol, in: CGRect(origin: frame.origin, size: frame.size).mul(offset))
                         
                     } else {
                         
                         let frame: CGRect
-                        
                         switch viewModel.views[i].initialSize {
                         case .fill:
                             // Fill the frame

@@ -19,9 +19,8 @@ struct EditHandle<ViewContext>: View {
     
     
     func computePosition(frame: CGRect? = nil) {
-        if let frame = frame ?? selected.frame  {
-            handlePos = boundsCheck(CGPoint(x: frame.origin.x, y: frame.origin.y))
-        }
+        let frame = frame ?? selected.frame
+        handlePos = boundsCheck(CGPoint(x: frame.origin.x, y: frame.origin.y))
     }
     
     func boundsCheck(_ inpt: CGPoint) -> CGPoint {

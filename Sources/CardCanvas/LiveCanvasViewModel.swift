@@ -21,7 +21,7 @@ public struct ViewState<ViewContext>: Identifiable {
         case disabled
     }
     
-    public var frame: CGRect?
+    public var frame: CGRect = .null
     public var id: UUID
     public var context: ViewContext
     public var initialSize: InitialSize
@@ -108,22 +108,22 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    public func align(_ viewModel: ViewState<ViewContext>, position: Alignment) {
+    public func align(_ viewModel: Binding<ViewState<ViewContext>>, position: Alignment) {
         guard let size = size else {
             return
         }
-        guard let idx = views.firstIndex(where: { $0.id == viewModel.id }) else {
-            return
-        }
+//        guard let idx = views.firstIndex(where: { $0.id == viewModel.id }) else {
+//            return
+//        }
         switch position {
         case .left:
-            views[idx].frame?.origin.x = 0
+            viewModel.wrappedValue.frame.origin.x = 0
         case .right:
-            views[idx].frame?.origin.x = views[idx].frame?.width ?? 0
+            viewModel.wrappedValue.frame.origin.x = viewModel.wrappedValue.frame.width
         case .top:
-            views[idx].frame?.origin.y = 0
+            viewModel.wrappedValue.frame.origin.y = 0
         case .bottom:
-            views[idx].frame?.origin.y = views[idx].frame?.height ?? 0
+            viewModel.wrappedValue.frame.origin.y = viewModel.wrappedValue.frame.height
         case .horizontal:
             break
         case .vertical:

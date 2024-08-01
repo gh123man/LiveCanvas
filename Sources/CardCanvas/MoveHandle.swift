@@ -14,17 +14,11 @@ struct MoveHandle<ViewContext>: View {
     var externalGeometry: GeometryProxy
     
     var size: CGSize {
-        guard let size = selected.frame?.size else {
-            return .zero
-        }
-        return size
+        return selected.frame.size
     }
     
     var position: CGPoint {
-        guard let origin = selected.frame?.origin else {
-            return .zero
-        }
-        return origin
+        return selected.frame.origin
     }
     
     var offset: CGSize {
@@ -64,7 +58,7 @@ struct MoveHandle<ViewContext>: View {
                             pos.y -= fingerPosition.y
                         }
                         
-                        selected.frame?.origin = pos
+                        selected.frame.origin = pos
                     }
                     .onEnded { _ in
                         fingerPosition = nil
