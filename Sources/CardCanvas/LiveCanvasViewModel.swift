@@ -70,15 +70,21 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         switch position {
         case .front:
             layers.append(viewModel)
-            select(index: layers.count - 1)
+            if viewModel.selectable {
+                select(index: layers.count - 1)
+            }
             return get(index: layers.count - 1)
         case .back:
             layers.insert(viewModel, at: 0)
-            select(index: 0)
+            if viewModel.selectable {
+                select(index: 0)
+            }
             return get(index: 0)
         case .index(let idx):
             layers.insert(viewModel, at: idx)
-            select(index: idx)
+            if viewModel.selectable {
+                select(index: idx)
+            }
             return get(index: idx)
         }
     }
