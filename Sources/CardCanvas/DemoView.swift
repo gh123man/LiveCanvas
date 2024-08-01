@@ -20,6 +20,7 @@ struct DemoView: View {
     @State var edit = false
     @State var editText = ""
     @State var showEditText = false
+    @State var background: Binding<Layer<MyViewContext>>?
     
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
         Layer(.text("foo"))
@@ -82,11 +83,19 @@ struct DemoView: View {
                     }
                 }
                 Button("Add background") {
-                    vm.add(Layer(.fullScreen,
-                                     initialSize: .fill,
-                                     movable: false,
-                                     resize: .disabled),
-                           at: .bottom)
+                    if background == nil {
+                        // Store a mutable reference to the background
+                        background = vm.add(Layer(.fullScreen,
+                                                  initialSize: .fill,
+                                                  movable: false,
+                                                  resize: .disabled),
+                                            at: .bottom)
+                    }
+                }
+                if let background = background {
+                    Button("mutate background") {
+                        background.wrappedValue.context = .text("Foo")
+                    }
                 }
             }
         }

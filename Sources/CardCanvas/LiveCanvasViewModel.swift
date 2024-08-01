@@ -63,18 +63,33 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         self.layers = viewModels
     }
     
-    public func add(_ viewModel: Layer<ViewContext>, at position: Position = .top) {
+    @discardableResult
+    public func add(_ viewModel: Layer<ViewContext>, at position: Position = .top) -> Binding<Layer<ViewContext>> {
         switch position {
         case .top:
             layers.append(viewModel)
             select(index: layers.count - 1)
+            return get(index: layers.count - 1)
         case .bottom:
             layers.insert(viewModel, at: 0)
             select(index: 0)
+            return get(index: 0)
         case .index(let idx):
             layers.insert(viewModel, at: idx)
             select(index: idx)
+            return get(index: idx)
         }
+    }
+    
+    public func get(index: Int) -> Binding<Layer<ViewContext>> {
+        return Binding(
+            get: {
+                self.layers[index]
+            },
+            set: { newValue in
+                self.layers[index] = newValue
+            }
+        )
     }
     
     public func select(_ viewModel: Binding<Layer<ViewContext>>?) {
