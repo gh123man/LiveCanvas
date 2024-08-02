@@ -7,9 +7,9 @@ import Foundation
 public struct LiveCanvas<Content: View, ViewContext>: View {
     
     @ObservedObject public var viewModel: LiveCanvasViewModel<ViewContext>
-    @ViewBuilder public var viewBuilder: (ViewContext) -> Content
+    @ViewBuilder public var viewBuilder: (Layer<ViewContext>) -> Content
     
-    public init(viewModel: LiveCanvasViewModel<ViewContext>, @ViewBuilder viewBuilder: @escaping (ViewContext) -> Content) {
+    public init(viewModel: LiveCanvasViewModel<ViewContext>, @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content) {
         self.viewModel = viewModel
         self.viewBuilder = viewBuilder
         self.viewModel.snapshotFunc = snapshot
@@ -44,6 +44,10 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                         case .fill:
                             // Fill the frame
                             frame = CGRect(origin: .zero, size: size)
+                        case .size(let userSize):
+                            // User set size
+                            frame = CGRect(origin: CGPoint(x: (size.width - userSize.width ) / 2, y: (size.height - userSize.height) / 2),
+                                           size: userSize)
                         case .intrinsic:
                             // Use the views intrinsic size and center it
                             frame = CGRect(origin: CGPoint(x: (size.width - symbol.size.width) / 2, y: (size.height - symbol.size.height) / 2),
@@ -61,7 +65,7 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
             
         } symbols: {
             ForEach(viewModel.layers) { viewModel in
-                viewBuilder(viewModel.context)
+                viewBuilder(viewModel)
                 .tag(viewModel.id)
             }
         }.onTapGesture {

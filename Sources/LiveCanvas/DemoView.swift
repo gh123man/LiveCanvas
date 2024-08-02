@@ -12,6 +12,7 @@ struct DemoView: View {
     
     enum MyViewContext {
         case text(String)
+        case fixedSizeText(String)
         case image
         case recursiveSnapshot(UIImage)
         case fullScreen
@@ -73,10 +74,14 @@ struct DemoView: View {
                 }
             }
             
-            LiveCanvas(viewModel: vm) { context in
-                switch context {
+            LiveCanvas(viewModel: vm) { layer in
+                switch layer.context {
                 case let .text(txt):
                     Text(txt)
+                case let .fixedSizeText(txt):
+                    Text(txt)
+                        .frame(width: layer.frame.width < 20 ? 20 : layer.frame.width,
+                               height: layer.frame.height < 20 ? 20 : layer.frame.height)
                 case .image:
                     Text("🖕")
                 case .recursiveSnapshot(let img):
@@ -136,11 +141,17 @@ struct DemoView: View {
                 Button("Add Text") {
                     lastView = vm.add(Layer(.text("bar 123123")))
                 }
+                Button("Add Fized size Text") {
+                    lastView = vm.add(Layer(.fixedSizeText("Fixed size"),
+                                            initialSize: .size(CGSize(width: 100, 
+                                                                      height: 100))))
+                }
                 Button("Add Emoji") {
                     vm.add(Layer(.image, resize: .proportional))
                 }
                 Button("Render Snapshot") {
-                    if let img = vm.render(to: CGSize(width: 100, height: 100)) {
+                    if let img = vm.render(to: CGSize(width: 100, 
+                                                      height: 100)) {
                         vm.add(Layer(.recursiveSnapshot(img),
                                      resize: .proportional))
                     }

@@ -12,6 +12,7 @@ public struct Layer<ViewContext>: Identifiable {
     
     public enum InitialSize {
         case fill
+        case size(CGSize)
         case intrinsic
     }
     
