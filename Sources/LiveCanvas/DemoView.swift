@@ -23,7 +23,7 @@ struct DemoView: View {
     @State var background: Binding<Layer<MyViewContext>>?
     @State var lastView: Binding<Layer<MyViewContext>>?
 
-    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(viewModels: [
+    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: [
         Layer(.text("Nora Rocks 🐱"))
     ])
     
@@ -46,28 +46,32 @@ struct DemoView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            
-            // TODO: Undo redo
-//            HStack {
-//                HStack(spacing: 20) {
-//                    Button(action: {
-////                        vm.align(selected, to: .horizontal)
-//                    }, label: {
-//                        Image(systemName: "arrow.uturn.backward")
-//                    })
-//                    Button(action: {
-////                        vm.align(selected, to: .horizontal)
-//                    }, label: {
-//                        Image(systemName: "arrow.uturn.forward")
-//                    })
-//                    
-//                }
-//                .padding(5)
-//                .background(.white)
-//                .cornerRadius(20)
-//                .shadow(radius: 20)
-//                Spacer()
-//            }
+            if vm.canUndo || vm.canRedo {
+                HStack {
+                    HStack(spacing: 20) {
+                        if vm.canUndo {
+                            Button(action: {
+                                vm.undo()
+                            }, label: {
+                                Image(systemName: "arrow.uturn.backward")
+                            })
+                        }
+                        if vm.canRedo {
+                            Button(action: {
+                                vm.redo()
+                            }, label: {
+                                Image(systemName: "arrow.uturn.forward")
+                            })
+                        }
+                        
+                    }
+                    .padding(5)
+                    .background(.white)
+                    .cornerRadius(20)
+                    .shadow(radius: 20)
+                    Spacer()
+                }
+            }
             
             LiveCanvas(viewModel: vm) { context in
                 switch context {

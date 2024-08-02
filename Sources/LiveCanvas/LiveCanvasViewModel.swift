@@ -58,20 +58,33 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     @Published public var layers: [Layer<ViewContext>]
+    @Published public var undoStack: [[Layer<ViewContext>]] = []
+    @Published public var redoStack: [[Layer<ViewContext>]] = []
+    
+    var canUndo: Bool {
+        return !undoStack.isEmpty
+    }
+    
+    var canRedo: Bool {
+        return !redoStack.isEmpty
+    }
+
     var size: CGSize?
     public var canvasSize: CGSize? {
         return size
     }
     
     var snapshotFunc: ((CGSize?) -> UIImage?)?
+    
     @Published public var selected: Binding<Layer<ViewContext>>?
     
-    public init(viewModels: [Layer<ViewContext>] = []) {
-        self.layers = viewModels
+    public init(layers: [Layer<ViewContext>] = []) {
+        self.layers = layers
     }
     
     @discardableResult
     public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> Binding<Layer<ViewContext>> {
+        undoCheckpoint()
         switch position {
         case .front:
             layers.append(viewModel)
@@ -135,6 +148,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     public func remove(_ viewModel: Binding<Layer<ViewContext>>) {
         if let idx = layers.firstIndex(where: { $0.id == viewModel.id }) {
+            undoCheckpoint()
             if selected?.wrappedValue.id == viewModel.id {
                 selected = nil
             }
@@ -143,6 +157,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public func moveLayer(_ viewModel: Binding<Layer<ViewContext>>, position: LayerPosition) {
+        undoCheckpoint()
         let index = indexFor(id: viewModel.id)
         switch position {
         case .up:
@@ -162,6 +177,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         guard let size = size else {
             return
         }
+        undoCheckpoint()
         switch position {
         case .left:
             viewModel.wrappedValue.frame.origin.x = 0
@@ -183,6 +199,27 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     public func render(to size: CGSize? = nil) -> UIImage? {
         return snapshotFunc?(size)
+    }
+    
+    public func undoCheckpoint() {
+        undoStack.append(layers)
+        redoStack = []
+    }
+    
+    public func undo() {
+        selected = nil
+        if let last = undoStack.popLast() {
+            redoStack.append(layers)
+            layers = last
+        }
+    }
+    
+    public func redo() {
+        selected = nil
+        if let last = redoStack.popLast() {
+            undoStack.append(layers)
+            layers = last
+        }
     }
     
 }

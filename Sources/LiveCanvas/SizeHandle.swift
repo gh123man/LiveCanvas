@@ -12,7 +12,9 @@ struct SizeHandle<ViewContext>: View {
     
     @Binding var selected: Layer<ViewContext>
     @State var handlePos: CGPoint = .zero
+    @State var gestureOngoing = false
     var externalGeometry: GeometryProxy
+    var onStartMove: () -> ()
     
     let minSize = CGSize(width: 20, height: 20)
     
@@ -50,6 +52,10 @@ struct SizeHandle<ViewContext>: View {
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
+                        if !gestureOngoing {
+                            self.gestureOngoing = true
+                            onStartMove()
+                        }
                         
                         let pos = boundsCheck(gesture.location)
                         var newFrame: CGSize
@@ -82,6 +88,9 @@ struct SizeHandle<ViewContext>: View {
                         newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
                         selected.frame.size = newFrame
                         computePosition()
+                    }
+                    .onEnded { _ in
+                        gestureOngoing = false
                     }
             )
     }

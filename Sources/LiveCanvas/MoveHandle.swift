@@ -12,6 +12,7 @@ struct MoveHandle<ViewContext>: View {
     @Binding var selected: Layer<ViewContext>
     @State private var fingerPosition: CGPoint?
     var externalGeometry: GeometryProxy
+    var onStartMove: () -> ()
     
     var size: CGSize {
         return selected.frame.size
@@ -47,6 +48,7 @@ struct MoveHandle<ViewContext>: View {
                     .onChanged { gesture in
                         var pos = gesture.location
                         if fingerPosition == nil {
+                            onStartMove()
                             fingerPosition = CGPoint(x: pos.x - position.x, y: pos.y - position.y)
                         }
 

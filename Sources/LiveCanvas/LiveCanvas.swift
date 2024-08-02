@@ -88,14 +88,16 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                 
                 if let selected = viewModel.selected {
                     if selected.wrappedValue.movable {
-                        MoveHandle(selected: selected, externalGeometry: geometry)
+                        MoveHandle(selected: selected, externalGeometry: geometry) {
+                            viewModel.undoCheckpoint()
+                        }
                     }
                     if selected.wrappedValue.resize != .disabled {
-                        SizeHandle(selected: selected, externalGeometry: geometry)
+                        SizeHandle(selected: selected, externalGeometry: geometry) {
+                           viewModel.undoCheckpoint()
+                       }
                     }
                 }
-                // Not needed?
-//                EditHandle(viewModel: viewModel, selected: viewModel.selected, externalGeometry: geometry)
             }
         }
     }
