@@ -52,15 +52,12 @@ struct SizeHandle<ViewContext>: View {
                     .onChanged { gesture in
                         
                         let pos = boundsCheck(gesture.location)
+                        var newFrame: CGSize
                         
                         switch selected.resize {
                         case .any:
-                            var newFrame: CGSize = CGSize(width: pos.x - selected.frame .origin.x, height: pos.y - selected.frame .origin.y)
+                            newFrame = CGSize(width: pos.x - selected.frame .origin.x, height: pos.y - selected.frame .origin.y)
                             
-                            // Enfornce mininmum size
-                            newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
-                            newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
-
                             selected.frame.size = newFrame
                         case .proportional:
                             let frame = selected.frame
@@ -70,21 +67,20 @@ struct SizeHandle<ViewContext>: View {
                             let wProportin = wChange / frame.width
                             let hProportin = hChange / frame.height
 
-                            let newFrame: CGSize
-                            
                             if wProportin > hProportin {
                                 newFrame = CGSize(width: wChange, height: frame.height * wProportin)
                             } else {
                                 newFrame = CGSize(width: frame.width * hProportin, height: hChange)
-
                             }
                             
-                            selected.frame.size = newFrame
-                        default: break
+                        default: return
                             
                         }
                         
-                        
+                        // Enfornce mininmum size
+                        newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
+                        newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
+                        selected.frame.size = newFrame
                         computePosition()
                     }
             )

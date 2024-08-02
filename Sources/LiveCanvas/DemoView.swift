@@ -27,9 +27,48 @@ struct DemoView: View {
         Layer(.text("Nora Rocks 🐱"))
     ])
     
+    let alignmentButtons: [(String, LiveCanvasViewModel<MyViewContext>.Alignment)] = [
+        ("rectangle.center.inset.filled", .center),
+        ("align.horizontal.center.fill", .horizontal),
+        ("align.vertical.center.fill", .vertical),
+        ("align.horizontal.left.fill", .left),
+        ("align.horizontal.right.fill", .right),
+        ("align.vertical.top.fill", .top),
+        ("align.vertical.bottom.fill", .bottom)
+    ]
+    
+    let layerButtons: [(String, LiveCanvasViewModel<MyViewContext>.LayerPosition)] = [
+        ("square.2.layers.3d.top.filled", .up),
+        ("square.2.layers.3d.bottom.filled", .down),
+        ("square.3.layers.3d.top.filled", .front),
+        ("square.3.layers.3d.bottom.filled", .back)
+    ]
     
     var body: some View {
         VStack(spacing: 20) {
+            
+            // TODO: Undo redo
+//            HStack {
+//                HStack(spacing: 20) {
+//                    Button(action: {
+////                        vm.align(selected, to: .horizontal)
+//                    }, label: {
+//                        Image(systemName: "arrow.uturn.backward")
+//                    })
+//                    Button(action: {
+////                        vm.align(selected, to: .horizontal)
+//                    }, label: {
+//                        Image(systemName: "arrow.uturn.forward")
+//                    })
+//                    
+//                }
+//                .padding(5)
+//                .background(.white)
+//                .cornerRadius(20)
+//                .shadow(radius: 20)
+//                Spacer()
+//            }
+            
             LiveCanvas(viewModel: vm) { context in
                 switch context {
                 case let .text(txt):
@@ -52,78 +91,28 @@ struct DemoView: View {
                         if case let .text(val) = selected.wrappedValue.context {
                             Button(action: {
                                 showEditText.toggle()
-                                
                                 editText = val
+                                
                             }, label: {
                                 Image(systemName: "pencil.circle.fill")
                             })
                         }
                         // Delete
-                        Button(action: {
-                            vm.remove(selected)
-                        }, label: {
+                        Button(action: { vm.remove(selected) }, label: {
                             Image(systemName: "trash.fill")
                         })
                         
-                        // Alignment
-                        Button(action: {
-                            vm.align(selected, to: .center)
-                        }, label: {
-                            Image(systemName: "rectangle.center.inset.filled")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .horizontal)
-                        }, label: {
-                            Image(systemName: "align.horizontal.center.fill")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .vertical)
-                        }, label: {
-                            Image(systemName: "align.vertical.center.fill")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .left)
-                        }, label: {
-                            Image(systemName: "align.horizontal.left.fill")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .right)
-                        }, label: {
-                            Image(systemName: "align.horizontal.right.fill")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .top)
-                        }, label: {
-                            Image(systemName: "align.vertical.top.fill")
-                        })
-                        Button(action: {
-                            vm.align(selected, to: .bottom)
-                        }, label: {
-                            Image(systemName: "align.vertical.bottom.fill")
-                        })
-                        
-                        // Layers
-                        Button(action: {
-                            vm.moveLayer(selected, position: .up)
-                        }, label: {
-                            Image(systemName: "square.2.layers.3d.top.filled")
-                        })
-                        Button(action: {
-                            vm.moveLayer(selected, position: .down)
-                        }, label: {
-                            Image(systemName: "square.2.layers.3d.bottom.filled")
-                        })
-                        Button(action: {
-                            vm.moveLayer(selected, position: .front)
-                        }, label: {
-                            Image(systemName: "square.3.layers.3d.top.filled")
-                        })
-                        Button(action: {
-                            vm.moveLayer(selected, position: .back)
-                        }, label: {
-                            Image(systemName: "square.3.layers.3d.bottom.filled")
-                        })
-                        
+                        ForEach(alignmentButtons, id: \.0) { imageName, alignment in
+                            Button(action: { vm.align(selected, to: alignment) }) {
+                                Image(systemName: imageName)
+                            }
+                        }
+
+                        ForEach(layerButtons, id: \.0) { imageName, position in
+                            Button(action: { vm.moveLayer(selected, position: position) }) {
+                                Image(systemName: imageName)
+                            }
+                        }
                         
                         
                     } else {
