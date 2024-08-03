@@ -4,14 +4,26 @@
 import SwiftUI
 import Foundation
 
-public struct LiveCanvas<Content: View, ViewContext>: View {
+extension LiveCanvas {
+    public init(viewModel: LiveCanvasViewModel<ViewContext>,
+                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content) 
+    where OverlayContent.Type == EmptyView.Type {
+        self.init(viewModel: viewModel, viewBuilder: viewBuilder, overlayControls: { _, _ in })
+    }
+}
+
+public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View {
     
     @ObservedObject public var viewModel: LiveCanvasViewModel<ViewContext>
     @ViewBuilder public var viewBuilder: (Layer<ViewContext>) -> Content
-    
-    public init(viewModel: LiveCanvasViewModel<ViewContext>, @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content) {
+    @ViewBuilder var overlayControls: (Binding<Layer<ViewContext>>, Bool) -> OverlayContent
+
+    public init(viewModel: LiveCanvasViewModel<ViewContext>,
+                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content,
+                @ViewBuilder overlayControls: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent) {
         self.viewModel = viewModel
         self.viewBuilder = viewBuilder
+        self.overlayControls = overlayControls
         self.viewModel.snapshotFunc = snapshot
     }
     
@@ -80,6 +92,10 @@ public struct LiveCanvas<Content: View, ViewContext>: View {
                     DispatchQueue.main.async {
                         viewModel.size = geometry.size
                     }
+                }
+                
+                ForEach($viewModel.layers) { $vm in
+                    ControlHandle(viewModel: $vm, selected: viewModel.selected?.wrappedValue?.id == vm.id, externalGeometry: geometry, overlayControls: overlayControls)
                 }
                 
                 ForEach($viewModel.layers) { $vm in

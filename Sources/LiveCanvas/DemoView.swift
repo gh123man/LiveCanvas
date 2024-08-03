@@ -88,7 +88,7 @@ struct DemoView: View {
                 case let .text(txt):
                     Text(txt)
                 case let .fixedSizeText(txt):
-                    Text(txt)
+                    TextEditor(text: .constant(txt))
                         .frame(width: layer.frame.width < 20 ? 20 : layer.frame.width,
                                height: layer.frame.height < 20 ? 20 : layer.frame.height)
                 case .image:
@@ -97,6 +97,17 @@ struct DemoView: View {
                     Image(uiImage: img)
                 case .fullScreen:
                     Image(systemName: "pencil.and.ruler")
+                }
+            } overlayControls: { layer, selected in
+                if case let .fixedSizeText(txt) = layer.wrappedValue.context, selected {
+                    TextEditor(text: $editText)
+                        .onAppear {
+                            editText = txt
+                        }
+                        .onChange(of: editText) { newVal in
+                            layer.wrappedValue.context = .fixedSizeText(newVal)
+                        }
+                    
                 }
             }
             .aspectRatio(0.77, contentMode: .fit)
