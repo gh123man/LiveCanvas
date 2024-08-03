@@ -77,14 +77,14 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     var snapshotFunc: ((CGSize?) -> UIImage?)?
     
-    @Published public var selected: Binding<Layer<ViewContext>>?
+    @Published public var selected: Binding<Layer<ViewContext>?>?
     
     public init(layers: [Layer<ViewContext>] = []) {
         self.layers = layers
     }
     
     @discardableResult
-    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> Binding<Layer<ViewContext>> {
+    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> Binding<Layer<ViewContext>?> {
         undoCheckpoint()
         switch position {
         case .front:
@@ -108,26 +108,31 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    private func idFor(index: Int) -> UUID {
-        return layers[index].id
+    private func idFor(index: Int) -> UUID? {
+        return layers[safe: index]?.id
     }
     
-    // Unsafe - this function assumes the ID exists in the layers.
-    // careful internal use only
-    private func indexFor(id: UUID) -> Int {
-        layers.firstIndex(where: { $0.id == id })!
+    private func indexFor(id: UUID) -> Int? {
+        layers.firstIndex(where: { $0.id == id })
     }
     
-    public func get(index: Int) -> Binding<Layer<ViewContext>> {
+    public func get(index: Int) -> Binding<Layer<ViewContext>?> {
         // Index is unstable due to reordering so capture the ID and lookup the index
         // so returned bindings are consistent.
-        let id = idFor(index: index)
+        guard let id = idFor(index: index) else {
+            return Binding(get: { nil }, set: { _ in })
+        }
         return Binding(
             get: {
-                self.layers[self.indexFor(id: id)]
+                guard let idx = self.indexFor(id: id) else {
+                    return nil
+                }
+                return self.layers[safe: idx]
             },
             set: { newValue in
-                self.layers[self.indexFor(id: id)] = newValue
+                if let newValue = newValue, let idx = self.indexFor(id: id), self.layers.indices.contains(idx) {
+                    self.layers[idx] = newValue
+                }
             }
         )
     }
@@ -147,19 +152,24 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         selected = get(index: index)
     }
     
-    public func remove(_ viewModel: Binding<Layer<ViewContext>>) {
-        if let idx = layers.firstIndex(where: { $0.id == viewModel.id }) {
-            undoCheckpoint()
-            if selected?.wrappedValue.id == viewModel.id {
-                selected = nil
-            }
-            layers.remove(at: idx)
+    public func remove(_ viewModel: Binding<Layer<ViewContext>?>) {
+        
+        guard let viewModel = viewModel.wrappedValue, let idx = indexFor(id: viewModel.id) else {
+            return
         }
+        if selected?.wrappedValue?.id == viewModel.id {
+            selected = nil
+        }
+        undoCheckpoint()
+        layers.remove(at: idx)
     }
     
-    public func moveLayer(_ viewModel: Binding<Layer<ViewContext>>, position: LayerPosition) {
+    public func moveLayer(_ viewModel: Binding<Layer<ViewContext>?>, position: LayerPosition) {
         undoCheckpoint()
-        let index = indexFor(id: viewModel.id)
+        guard let id = viewModel.wrappedValue?.id, let index = indexFor(id: id) else {
+            return
+        }
+            
         switch position {
         case .up:
             layers.moveUp(from: index)
@@ -174,27 +184,27 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    public func align(_ viewModel: Binding<Layer<ViewContext>>, to position: Alignment) {
-        guard let size = size else {
+    public func align(_ viewModel: Binding<Layer<ViewContext>?>, to position: Alignment) {
+        guard let size = size, let readFrame = viewModel.wrappedValue?.frame else {
             return
         }
         undoCheckpoint()
         switch position {
         case .left:
-            viewModel.wrappedValue.frame.origin.x = 0
+            viewModel.wrappedValue?.frame.origin.x = 0
         case .right:
-            viewModel.wrappedValue.frame.origin.x = size.width - viewModel.wrappedValue.frame.width
+            viewModel.wrappedValue?.frame.origin.x = size.width - readFrame.width
         case .top:
-            viewModel.wrappedValue.frame.origin.y = 0
+            viewModel.wrappedValue?.frame.origin.y = 0
         case .bottom:
-            viewModel.wrappedValue.frame.origin.y = size.height - viewModel.wrappedValue.frame.height
+            viewModel.wrappedValue?.frame.origin.y = size.height - readFrame.height
         case .horizontal:
-            viewModel.wrappedValue.frame.origin.x = (size.width - viewModel.wrappedValue.frame.size.width) / 2
+            viewModel.wrappedValue?.frame.origin.x = (size.width - readFrame.size.width) / 2
         case .vertical:
-            viewModel.wrappedValue.frame.origin.y = (size.height - viewModel.wrappedValue.frame.size.height) / 2
+            viewModel.wrappedValue?.frame.origin.y = (size.height - readFrame.size.height) / 2
         case .center:
-            viewModel.wrappedValue.frame.origin.x = (size.width - viewModel.wrappedValue.frame.size.width) / 2
-            viewModel.wrappedValue.frame.origin.y = (size.height - viewModel.wrappedValue.frame.size.height) / 2
+            viewModel.wrappedValue?.frame.origin.x = (size.width - readFrame.size.width) / 2
+            viewModel.wrappedValue?.frame.origin.y = (size.height - readFrame.size.height) / 2
         }
     }
     
