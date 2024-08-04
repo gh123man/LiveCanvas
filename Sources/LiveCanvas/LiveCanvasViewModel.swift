@@ -110,33 +110,8 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    private func idFor(index: Int) -> UUID? {
-        return layers[safe: index]?.id
-    }
-    
     private func indexFor(id: UUID) -> Int? {
         layers.firstIndex(where: { $0.id == id })
-    }
-    
-    public func get(index: Int) -> Binding<Layer<ViewContext>?> {
-        // Index is unstable due to reordering so capture the ID and lookup the index
-        // so returned bindings are consistent.
-        guard let id = idFor(index: index) else {
-            return Binding(get: { nil }, set: { _ in })
-        }
-        return Binding(
-            get: {
-                guard let idx = self.indexFor(id: id) else {
-                    return nil
-                }
-                return self.layers[safe: idx]
-            },
-            set: { newValue in
-                if let newValue = newValue, let idx = self.indexFor(id: id), self.layers.indices.contains(idx) {
-                    self.layers[idx] = newValue
-                }
-            }
-        )
     }
     
     public func bindingFrom(id: LayerID) -> Binding<Layer<ViewContext>>? {
