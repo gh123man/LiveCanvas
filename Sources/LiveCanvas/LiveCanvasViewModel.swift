@@ -139,7 +139,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         )
     }
     
-    func bindingFrom(id: LayerID) -> Binding<Layer<ViewContext>>? {
+    public func bindingFrom(id: LayerID) -> Binding<Layer<ViewContext>>? {
         guard let id = layers[id: id]?.id else {
             return nil
         }
