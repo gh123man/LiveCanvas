@@ -8,7 +8,7 @@ extension LiveCanvas {
     public init(viewModel: LiveCanvasViewModel<ViewContext>,
                 @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content) 
     where OverlayContent.Type == EmptyView.Type {
-        self.init(viewModel: viewModel, viewBuilder: viewBuilder, overlayControls: { _, _ in })
+        self.init(viewModel: viewModel, viewBuilder: viewBuilder, controlOverlay: { _, _ in })
     }
 }
 
@@ -20,10 +20,10 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
 
     public init(viewModel: LiveCanvasViewModel<ViewContext>,
                 @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content,
-                @ViewBuilder overlayControls: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent) {
+                @ViewBuilder controlOverlay: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent) {
         self.viewModel = viewModel
         self.viewBuilder = viewBuilder
-        self.overlayControls = overlayControls
+        self.overlayControls = controlOverlay
         self.viewModel.snapshotFunc = snapshot
     }
     

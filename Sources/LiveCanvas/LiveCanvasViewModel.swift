@@ -86,27 +86,27 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     @discardableResult
-    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> LayerID {
+    public func add(_ layer: Layer<ViewContext>, at position: Level = .front) -> LayerID {
         undoCheckpoint()
         switch position {
         case .front:
-            layers.append(viewModel)
-            if viewModel.selectable {
+            layers.append(layer)
+            if layer.selectable {
                 select(index: layers.count - 1)
             }
-            return viewModel.id
+            return layer.id
         case .back:
-            layers.insert(viewModel, at: 0)
-            if viewModel.selectable {
+            layers.insert(layer, at: 0)
+            if layer.selectable {
                 select(index: 0)
             }
-            return viewModel.id
+            return layer.id
         case .index(let idx):
-            layers.insert(viewModel, at: idx)
-            if viewModel.selectable {
+            layers.insert(layer, at: idx)
+            if layer.selectable {
                 select(index: idx)
             }
-            return viewModel.id
+            return layer.id
         }
     }
     
