@@ -101,12 +101,17 @@ struct DemoView: View {
             } overlayControls: { layer, selected in
                 if case let .fixedSizeText(txt) = layer.wrappedValue.context, selected {
                     TextEditor(text: $editText)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(width: layer.wrappedValue.frame.width,
+                               height: layer.wrappedValue.frame.height,
+                               alignment: .top)
                         .onAppear {
                             editText = txt
                         }
                         .onChange(of: editText) { newVal in
                             layer.wrappedValue.context = .fixedSizeText(newVal)
                         }
+                        .background(.clear)
                     
                 }
             }
@@ -161,9 +166,9 @@ struct DemoView: View {
                 Button("Add Text") {
                     vm.add(Layer(.text("bar 123123")))
                 }
-                Button("Add Fized size Text") {
-                    vm.add(Layer(.fixedSizeText("Fixed size"),
-                                            initialSize: .size(CGSize(width: 100, 
+                Button("Add Paragraph") {
+                    vm.add(Layer(.fixedSizeText("Paragraph"),
+                                            initialSize: .size(CGSize(width: 100,
                                                                       height: 100))))
                 }
                 Button("Add Emoji") {

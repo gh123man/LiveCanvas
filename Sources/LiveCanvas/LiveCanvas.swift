@@ -120,6 +120,7 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                 }
             }
         }
+        .compositingGroup()
     }
     
     @MainActor
