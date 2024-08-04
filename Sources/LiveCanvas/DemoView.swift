@@ -89,7 +89,7 @@ struct DemoView: View {
                 case .fullScreen:
                     Image(systemName: "pencil.and.ruler")
                 }
-            } overlayControls: { layer, selected in
+            } controlOverlay: { layer, selected in
                 if case let .fixedSizeText(txt) = layer.wrappedValue.context, selected {
                     TextEditor(text: $editText)
                         .fixedSize(horizontal: false, vertical: true)
