@@ -22,11 +22,7 @@ struct DemoView: View {
     @State var editText = ""
     @State var showEditText = false
     
-    // Nil background mesans no backgroudn was set. A nil layer means the layer
-    // no longer exists. It's possibel for layers to come and go from
-    // the layer stack if you undo/redo. It is your job to ensure these remain
-    // consistent.
-    @State var background: Binding<Layer<MyViewContext>?>?
+    @State var background: LayerID?
 
     @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: [
         Layer(.text("Nora Rocks 🐱"))
@@ -57,11 +53,6 @@ struct DemoView: View {
                         if vm.canUndo {
                             Button(action: {
                                 vm.undo()
-                                
-                                // We have to check if the background layer is still valid and update our local state. its possible the background was removed in an undo operation.
-                                if background?.wrappedValue == nil {
-                                    background = nil
-                                }
                             }, label: {
                                 Image(systemName: "arrow.uturn.backward")
                             })
@@ -122,7 +113,7 @@ struct DemoView: View {
             ScrollView(.horizontal) {
                 HStack {
                     if let selected = vm.selected {
-                        if case let .text(val) = selected.wrappedValue?.context {
+                        if case let .text(val) = selected.wrappedValue.context {
                             Button(action: {
                                 showEditText.toggle()
                                 editText = val
@@ -132,18 +123,18 @@ struct DemoView: View {
                             })
                         }
                         // Delete
-                        Button(action: { vm.remove(selected) }, label: {
+                        Button(action: { vm.remove(selected.id) }, label: {
                             Image(systemName: "trash.fill")
                         })
                         
                         ForEach(alignmentButtons, id: \.0) { imageName, alignment in
-                            Button(action: { vm.align(selected, to: alignment) }) {
+                            Button(action: { vm.align(selected.wrappedValue.id, to: alignment) }) {
                                 Image(systemName: imageName)
                             }
                         }
 
                         ForEach(layerButtons, id: \.0) { imageName, position in
-                            Button(action: { vm.moveLayer(selected, position: position) }) {
+                            Button(action: { vm.moveLayer(selected.wrappedValue.id, position: position) }) {
                                 Image(systemName: imageName)
                             }
                         }
@@ -185,18 +176,17 @@ struct DemoView: View {
             
             // handle specific layers in their own way - like the background.
             HStack(spacing: 20) {
-                if let background = background {
+                if let background = background, vm.layers[id: background] != nil {
                     Button("mutate background") {
                         
                         // Have to manually checkpoint if we change the content
                         vm.undoCheckpoint()
                         
                         // Can change the type of a layer at any time
-                        background.wrappedValue?.context = .text("Foo")
+                        vm.layers[id: background]?.context = .text("Foo")
                     }
                     Button("Delete background") {
                         vm.remove(background)
-                        self.background = nil
                     }
                 } else {
                     Button("Add background") {
@@ -217,7 +207,7 @@ struct DemoView: View {
         .alert("Edit", isPresented: $showEditText) {
             TextField("", text: $editText)
             Button("OK") {
-                vm.selected?.wrappedValue?.context = .text(editText)
+                vm.selected?.wrappedValue.context = .text(editText)
             }
         } message: {
         }

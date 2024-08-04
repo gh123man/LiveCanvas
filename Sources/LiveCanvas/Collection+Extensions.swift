@@ -13,3 +13,22 @@ extension Collection {
         return indices.contains(index) ? self[index] : nil
     }
 }
+
+extension Array where Element: Identifiable {
+    subscript(id id: Element.ID) -> Element? {
+        get {
+            return self.first { $0.id == id }
+        }
+        set {
+            if let index = self.firstIndex(where: { $0.id == id }) {
+                if let newValue = newValue {
+                    self[index] = newValue
+                } else {
+                    self.remove(at: index)
+                }
+            } else if let newValue = newValue {
+                self.append(newValue)
+            }
+        }
+    }
+}

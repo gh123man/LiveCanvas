@@ -95,24 +95,24 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                 }
                 
                 ForEach($viewModel.layers) { $vm in
-                    ControlHandle(viewModel: $vm, selected: viewModel.selected?.wrappedValue?.id == vm.id, externalGeometry: geometry, overlayControls: overlayControls)
+                    ControlHandle(viewModel: $vm, selected: viewModel.selected?.wrappedValue.id == vm.id, externalGeometry: geometry, overlayControls: overlayControls)
                 }
                 
                 ForEach($viewModel.layers) { $vm in
                     if vm.selectable {
                         TapHandle(viewModel: $vm, externalGeometry: geometry) { val in
-                            viewModel.select(val)
+                            viewModel.select(val.id)
                         }
                     }
                 }
                 
                 if let selected = viewModel.selected {
-                    if selected.wrappedValue?.movable ?? false {
+                    if selected.wrappedValue.movable {
                         MoveHandle(selected: selected, externalGeometry: geometry) {
                             viewModel.undoCheckpoint()
                         }
                     }
-                    if selected.wrappedValue?.resize != .disabled {
+                    if selected.wrappedValue.resize != .disabled {
                         SizeHandle(selected: selected, externalGeometry: geometry) {
                            viewModel.undoCheckpoint()
                        }

@@ -8,6 +8,8 @@
 import Foundation
 import SwiftUI
 
+public typealias LayerID = UUID
+
 public struct Layer<ViewContext>: Identifiable {
     
     public enum InitialSize {
@@ -23,7 +25,7 @@ public struct Layer<ViewContext>: Identifiable {
     }
     
     public var frame: CGRect = .null
-    public var id: UUID
+    public var id: LayerID
     public var context: ViewContext
     public var initialSize: InitialSize
     public var movable: Bool
@@ -69,7 +71,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     var canRedo: Bool {
         return !redoStack.isEmpty
     }
-
+    
     var size: CGSize?
     public var canvasSize: CGSize? {
         return size
@@ -77,14 +79,14 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     var snapshotFunc: ((CGSize?) -> UIImage?)?
     
-    @Published public var selected: Binding<Layer<ViewContext>?>?
+    @Published public var selected: Binding<Layer<ViewContext>>?
     
     public init(layers: [Layer<ViewContext>] = []) {
         self.layers = layers
     }
     
     @discardableResult
-    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> Binding<Layer<ViewContext>?> {
+    public func add(_ viewModel: Layer<ViewContext>, at position: Level = .front) -> LayerID {
         undoCheckpoint()
         switch position {
         case .front:
@@ -92,19 +94,19 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
             if viewModel.selectable {
                 select(index: layers.count - 1)
             }
-            return get(index: layers.count - 1)
+            return viewModel.id
         case .back:
             layers.insert(viewModel, at: 0)
             if viewModel.selectable {
                 select(index: 0)
             }
-            return get(index: 0)
+            return viewModel.id
         case .index(let idx):
             layers.insert(viewModel, at: idx)
             if viewModel.selectable {
                 select(index: idx)
             }
-            return get(index: idx)
+            return viewModel.id
         }
     }
     
@@ -137,38 +139,47 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         )
     }
     
-    public func select(_ viewModel: Binding<Layer<ViewContext>>?) {
-        if let viewModel = viewModel {
-            guard let index = layers.firstIndex(where: { $0.id == viewModel.id }) else {
-                return
+    func bindingFrom(id: LayerID) -> Binding<Layer<ViewContext>>? {
+        guard let id = layers[id: id]?.id else {
+            return nil
+        }
+        return Binding(
+            get: { return self.layers[self.indexFor(id: id)!] },
+            set: { newValue in
+                self.layers[self.indexFor(id: id)!] = newValue
             }
-            select(index: index)
+        )
+    }
+    
+    public func select(_ id: LayerID?) {
+        if let id = id {
+            selected = bindingFrom(id: id)
         } else {
             selected = nil
         }
     }
     
     public func select(index: Int) {
-        selected = get(index: index)
+        select(layers[safe: index]?.id)
     }
     
-    public func remove(_ viewModel: Binding<Layer<ViewContext>?>) {
-        
-        guard let viewModel = viewModel.wrappedValue, let idx = indexFor(id: viewModel.id) else {
+    public func remove(_ id: LayerID) {
+        guard let idx = indexFor(id: id) else {
             return
         }
-        if selected?.wrappedValue?.id == viewModel.id {
+        if selected?.id == id {
             selected = nil
         }
         undoCheckpoint()
         layers.remove(at: idx)
     }
     
-    public func moveLayer(_ viewModel: Binding<Layer<ViewContext>?>, position: LayerPosition) {
-        undoCheckpoint()
-        guard let id = viewModel.wrappedValue?.id, let index = indexFor(id: id) else {
+    public func moveLayer(_ id: LayerID, position: LayerPosition) {
+        guard let index = indexFor(id: id) else {
             return
         }
+        
+        undoCheckpoint()
             
         switch position {
         case .up:
@@ -184,27 +195,27 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
-    public func align(_ viewModel: Binding<Layer<ViewContext>?>, to position: Alignment) {
-        guard let size = size, let readFrame = viewModel.wrappedValue?.frame else {
+    public func align(_ id: LayerID, to position: Alignment) {
+        guard let size = size, let layer = bindingFrom(id: id) else {
             return
         }
         undoCheckpoint()
         switch position {
         case .left:
-            viewModel.wrappedValue?.frame.origin.x = 0
+            layer.wrappedValue.frame.origin.x = 0
         case .right:
-            viewModel.wrappedValue?.frame.origin.x = size.width - readFrame.width
+            layer.wrappedValue.frame.origin.x = size.width - layer.wrappedValue.frame.width
         case .top:
-            viewModel.wrappedValue?.frame.origin.y = 0
+            layer.wrappedValue.frame.origin.y = 0
         case .bottom:
-            viewModel.wrappedValue?.frame.origin.y = size.height - readFrame.height
+            layer.wrappedValue.frame.origin.y = size.height - layer.wrappedValue.frame.height
         case .horizontal:
-            viewModel.wrappedValue?.frame.origin.x = (size.width - readFrame.size.width) / 2
+            layer.wrappedValue.frame.origin.x = (size.width - layer.wrappedValue.frame.size.width) / 2
         case .vertical:
-            viewModel.wrappedValue?.frame.origin.y = (size.height - readFrame.size.height) / 2
+            layer.wrappedValue.frame.origin.y = (size.height - layer.wrappedValue.frame.size.height) / 2
         case .center:
-            viewModel.wrappedValue?.frame.origin.x = (size.width - readFrame.size.width) / 2
-            viewModel.wrappedValue?.frame.origin.y = (size.height - readFrame.size.height) / 2
+            layer.wrappedValue.frame.origin.x = (size.width - layer.wrappedValue.frame.size.width) / 2
+            layer.wrappedValue.frame.origin.y = (size.height - layer.wrappedValue.frame.size.height) / 2
         }
     }
     
