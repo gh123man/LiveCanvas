@@ -64,11 +64,11 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     @Published public var undoStack: [[Layer<ViewContext>]] = []
     @Published public var redoStack: [[Layer<ViewContext>]] = []
     
-    var canUndo: Bool {
+    public var canUndo: Bool {
         return !undoStack.isEmpty
     }
     
-    var canRedo: Bool {
+    public var canRedo: Bool {
         return !redoStack.isEmpty
     }
     

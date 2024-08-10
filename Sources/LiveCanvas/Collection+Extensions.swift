@@ -14,7 +14,7 @@ extension Collection {
     }
 }
 
-extension Array where Element: Identifiable {
+public extension Array where Element: Identifiable {
     subscript(id id: Element.ID) -> Element? {
         get {
             return self.first { $0.id == id }

@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "CardCanvas",
+    name: "LiveCanvas",
     platforms: [
             .iOS(.v15),
             .visionOS(.v1)
@@ -12,16 +12,16 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "CardCanvas",
-            targets: ["CardCanvas"]),
+            name: "LiveCanvas",
+            targets: ["LiveCanvas"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "CardCanvas"),
+            name: "LiveCanvas"),
         .testTarget(
-            name: "CardCanvasTests",
-            dependencies: ["CardCanvas"]),
+            name: "LiveCanvasTests",
+            dependencies: ["LiveCanvas"]),
     ]
 )
