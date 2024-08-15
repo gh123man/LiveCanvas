@@ -1,5 +1,5 @@
 import XCTest
-@testable import CardCanvas
+@testable import LiveCanvas
 
 final class CardCanvasTests: XCTestCase {
     func testExample() throws {
