@@ -60,7 +60,13 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         case left, right, top, bottom, horizontal, vertical, center
     }
     
-    @Published public var layers: [Layer<ViewContext>]
+    @Published public var layers: [Layer<ViewContext>] {
+       didSet {
+           if let id = selected?.id {
+               select(id)
+           }
+       }
+   }
     @Published public var undoStack: [[Layer<ViewContext>]] = []
     @Published public var redoStack: [[Layer<ViewContext>]] = []
     
