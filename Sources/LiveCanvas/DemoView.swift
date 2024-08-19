@@ -166,7 +166,7 @@ struct DemoView: View {
                     vm.add(Layer(.image, resize: .proportional))
                 }
                 Button("Render Snapshot") {
-                    if let img = vm.render(to: CGSize(width: 100, 
+                    if let img = vm.render(to: CGSize(width: 100,
                                                       height: 100)) {
                         vm.add(Layer(.recursiveSnapshot(img),
                                      resize: .proportional))

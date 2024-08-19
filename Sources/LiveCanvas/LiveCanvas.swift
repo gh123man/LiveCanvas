@@ -125,12 +125,16 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
     
     @MainActor
     func snapshot(to renderSize: CGSize?) -> UIImage? {
-        guard let size = viewModel.size else {
+        guard let vmSize = viewModel.size else {
             return nil
         }
-        let controller = UIHostingController(rootView:
-                                                canvas(originSize: size, renderSize: renderSize ?? size)
-            .frame(width: size.width, height: size.height)
+        let size = renderSize ?? vmSize
+        
+        let frameW = size.width > vmSize.width ? size.width : vmSize.width
+        let frameH = size.height > vmSize.height ? size.height : vmSize.height
+        let controller = UIHostingController(rootView: canvas(originSize: vmSize,
+                                                              renderSize: size)
+            .frame(width: frameW, height: frameH)
             .ignoresSafeArea())
         
         let view = controller.view
@@ -138,7 +142,7 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
         view?.bounds = CGRect(origin: .zero, size: targetSize)
         view?.backgroundColor = .clear
         
-        let renderer = UIGraphicsImageRenderer(size: renderSize ?? size)
+        let renderer = UIGraphicsImageRenderer(size: size)
         return renderer.image { _ in
             view?.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
         }
