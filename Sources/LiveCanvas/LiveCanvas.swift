@@ -56,6 +56,12 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                         case .fill:
                             // Fill the frame
                             frame = CGRect(origin: .zero, size: size)
+                        case .fit(let userSize):
+                            let aspectWidth = userSize.width / symbol.size.width
+                            let aspectHeight = userSize.height / symbol.size.height
+                            let aspectRatio = min(aspectWidth, aspectHeight)
+                            let fittedSize = CGSize(width: symbol.size.width * aspectRatio, height: symbol.size.height * aspectRatio)
+                            frame = CGRect(origin: CGPoint(x: (size.width - fittedSize.width) / 2, y: (size.height - fittedSize.height) / 2), size: fittedSize)
                         case .size(let userSize):
                             // User set size
                             frame = CGRect(origin: CGPoint(x: (size.width - userSize.width ) / 2, y: (size.height - userSize.height) / 2),

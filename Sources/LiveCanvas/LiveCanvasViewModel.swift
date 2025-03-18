@@ -14,6 +14,7 @@ public struct Layer<ViewContext>: Identifiable {
     
     public enum InitialSize {
         case fill
+        case fit(CGSize)
         case size(CGSize)
         case intrinsic
     }
@@ -24,7 +25,7 @@ public struct Layer<ViewContext>: Identifiable {
         case disabled
     }
     
-    public var frame: CGRect = .null
+    public var frame: CGRect
     public var id: LayerID
     public var context: ViewContext
     public var initialSize: InitialSize
@@ -33,8 +34,9 @@ public struct Layer<ViewContext>: Identifiable {
     public var resize: Resize
 
     
-    public init(_ context: ViewContext, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
-        self.id = UUID()
+    public init(_ context: ViewContext, id: UUID = UUID(), frame: CGRect = .null, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
+        self.id = id
+        self.frame = frame
         self.context = context
         self.initialSize = initialSize
         self.selectable = selectable
