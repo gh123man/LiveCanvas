@@ -148,7 +148,10 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
         view?.bounds = CGRect(origin: .zero, size: targetSize)
         view?.backgroundColor = .clear
         
-        let renderer = UIGraphicsImageRenderer(size: size)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
         return renderer.image { _ in
             view?.drawHierarchy(in: controller.view.bounds, afterScreenUpdates: true)
         }
