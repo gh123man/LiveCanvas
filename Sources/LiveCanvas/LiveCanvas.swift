@@ -55,7 +55,7 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                         switch viewModel.layers[i].initialSize {
                         case .fill:
                             // Fill the frame
-                            frame = CGRect(origin: .zero, size: size)
+                            frame = CGRect(origin: .zero, size: size.add(CGSize(width: 1, height: 1)))
                         case .fit(let userSize):
                             let aspectWidth = userSize.width / symbol.size.width
                             let aspectHeight = userSize.height / symbol.size.height

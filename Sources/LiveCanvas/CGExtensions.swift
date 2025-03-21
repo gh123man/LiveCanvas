@@ -11,11 +11,19 @@ extension CGSize {
     func mul(_ s: CGSize) -> CGSize {
         CGSize(width: width * s.width, height: height * s.height)
     }
+    
+    func add(_ s: CGSize) -> CGSize {
+        CGSize(width: width + s.width, height: height + s.height)
+    }
 }
 
 extension CGPoint {
     func mul(_ s: CGSize) -> CGPoint {
         CGPoint(x: x * s.width, y: y * s.height)
+    }
+    
+    func add(_ s: CGSize) -> CGPoint {
+        CGPoint(x: x + s.width, y: y + s.height)
     }
 }
 
@@ -23,5 +31,8 @@ extension CGPoint {
 extension CGRect {
     func mul(_ s: CGSize) -> CGRect {
         CGRect(origin: origin.mul(s), size: size.mul(s))
+    }
+    func add(_ s: CGSize) -> CGRect {
+        CGRect(origin: origin.add(s), size: size.add(s))
     }
 }
