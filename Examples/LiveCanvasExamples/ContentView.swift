@@ -24,9 +24,9 @@ struct DemoView: View {
     
     @State var background: LayerID?
 
-    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: [
+    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: .absolute([
         Layer(.text("Nora Rocks 🐱"))
-    ], importRelativeLayers: false)
+    ]))
     
     let alignmentButtons: [(String, LiveCanvasViewModel<MyViewContext>.Alignment)] = [
         ("rectangle.center.inset.filled", .center),
@@ -159,7 +159,7 @@ struct DemoView: View {
                                                                       height: 100))))
                 }
                 Button("Add Nora") {
-                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 140, height: 100)), resize: .proportional))
+                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 250, height: 180)), resize: .proportional))
                 }
                 Button("Render Snapshot") {
                     if let img = vm.render(to: CGSize(width: 100,

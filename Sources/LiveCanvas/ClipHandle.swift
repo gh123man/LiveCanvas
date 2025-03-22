@@ -59,15 +59,9 @@ struct ClipHandle<ViewContext>: View {
         return pos
     }
     
+    
     var body: some View {
         ZStack {
-            Rectangle()
-                .border(.red)
-                .frame(width: selected.frame.width, height: selected.frame.height)
-                .contentShape(Rectangle())
-                .offset(frameOffset)
-                .foregroundColor(.clear)
-                .position(selected.frame.origin)
             Rectangle()
                 .border(.green)
                 .frame(width: size.width, height: size.height)
@@ -75,6 +69,13 @@ struct ClipHandle<ViewContext>: View {
                 .offset(offset)
                 .foregroundColor(.clear)
                 .position(position)
+            Rectangle()
+                .border(.red)
+                .frame(width: selected.frame.width, height: selected.frame.height)
+                .contentShape(Rectangle())
+                .offset(frameOffset)
+                .foregroundColor(.clear)
+                .position(selected.frame.origin)
                 .gesture(
                     DragGesture()
                         .onChanged { gesture in
@@ -113,9 +114,6 @@ struct ClipHandle<ViewContext>: View {
                                 pos.y = selected.frame.origin.y
                             }
                             
-                            print("finger", fingerPosition)
-                            print("pos", pos)
-                            
                             selected.frame.origin = pos
                         }
                         .onEnded { _ in
@@ -133,7 +131,6 @@ struct ClipHandle<ViewContext>: View {
                 .position(handlePos)
                 .shadow(radius: 5)
                 .onChange(of: selected.clipFrame) { newValue in
-                    print(newValue, selected.frame)
                     computePosition(frame: newValue)
                 }
                 .onAppear {
@@ -147,28 +144,24 @@ struct ClipHandle<ViewContext>: View {
                                 onStartMove()
                             }
                             
-                            let pos = boundsCheck(gesture.location)
-                            var newFrame: CGSize
+                            var pos = boundsCheck(gesture.location)
                             
-                            newFrame = CGSize(width: pos.x - clipFrame .origin.x, height: pos.y - clipFrame .origin.y)
+                            // Trailing bounds
+                            if pos.x > selected.frame.origin.x + selected.frame.width {
+                                pos.x = position.x + size.width
+                            }
+                        
+                            // Bottom bounds
+                            if pos.y > selected.frame.origin.y + selected.frame.height {
+                                pos.y = position.y + size.height
+                            }
                             
-                            selected.clipFrame?.size = newFrame
+                            var newFrame = CGSize(width: pos.x - clipFrame .origin.x, height: pos.y - clipFrame .origin.y)
                             
-                            
-//                            // Trailing bounds
-//                            if newFrame.width > selected.frame.width {
-//                                newFrame.width = selected.frame.width
-//                            }
-//                            
-//                            // Bottom bounds
-//                            if newFrame.height > selected.frame.height {
-//                                newFrame.height = selected.frame.height
-//                            }
-                            
-                            
-                            // Enfornce mininmum size
+                            // Enfornce min/max size
                             newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
                             newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
+                            
                             selected.clipFrame?.size = newFrame
                             computePosition()
                         }
