@@ -24,9 +24,9 @@ struct DemoView: View {
     
     @State var background: LayerID?
 
-    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: [
+    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: .absolute([
         Layer(.text("Nora Rocks 🐱"))
-    ])
+    ]))
     
     let alignmentButtons: [(String, LiveCanvasViewModel<MyViewContext>.Alignment)] = [
         ("rectangle.center.inset.filled", .center),

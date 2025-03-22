@@ -63,6 +63,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     public enum Alignment {
         case left, right, top, bottom, horizontal, vertical, center
     }
+    private var unimportedLayers: LayerImport
     
     @Published public var layers: [Layer<ViewContext>] {
        didSet {
@@ -91,8 +92,56 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     @Published public var selected: Binding<Layer<ViewContext>>?
     
-    public init(layers: [Layer<ViewContext>] = []) {
-        self.layers = layers
+    public enum LayerImport {
+        case absolute([Layer<ViewContext>])
+        case relative([Layer<ViewContext>])
+    }
+    
+    public init(layers: LayerImport) {
+        self.layers = []
+        self.unimportedLayers = layers
+    }
+    
+    func denormalize(rect: CGRect, in size: CGSize) -> CGRect {
+        if rect == .null { return rect }
+        return CGRect(
+            x: rect.origin.x * size.width,
+            y: rect.origin.y * size.height,
+            width: rect.size.width * size.width,
+            height: rect.size.height * size.height
+        )
+    }
+    
+    func normalize(rect: CGRect, in size: CGSize) -> CGRect {
+        if rect == .null { return rect }
+        return CGRect(
+            x: rect.origin.x / size.width,
+            y: rect.origin.y / size.height,
+            width: rect.size.width / size.width,
+            height: rect.size.height / size.height
+        )
+    }
+    
+    func processRelativeLayers(size: CGSize) {
+        switch unimportedLayers {
+        case .absolute(let newLayers):
+            self.layers = newLayers
+            
+        case .relative(var newLayers):
+            for (i, l) in newLayers.enumerated() {
+                newLayers[i].frame = denormalize(rect: l.frame, in: size)
+            }
+            self.layers = newLayers
+        }
+    }
+    
+    public func normalizedLayers() -> [Layer<ViewContext>] {
+        guard let size = size else { return [] }
+        var layers = self.layers
+        for (i, layer) in layers.enumerated() {
+            layers[i].frame = normalize(rect: layer.frame, in: size)
+        }
+        return layers
     }
     
     @discardableResult
