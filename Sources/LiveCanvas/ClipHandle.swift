@@ -41,6 +41,10 @@ struct ClipHandle<ViewContext>: View {
         return CGSize(width: size.width / 2, height: size.height / 2)
     }
     
+    var frameOffset: CGSize {
+        return CGSize(width: selected.frame.width / 2, height: selected.frame.height / 2)
+    }
+    
     func computePosition(frame: CGRect? = nil) {
         let frame = frame ?? clipFrame
         handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
@@ -57,6 +61,13 @@ struct ClipHandle<ViewContext>: View {
     
     var body: some View {
         ZStack {
+            Rectangle()
+                .border(.red)
+                .frame(width: selected.frame.width, height: selected.frame.height)
+                .contentShape(Rectangle())
+                .offset(frameOffset)
+                .foregroundColor(.clear)
+                .position(selected.frame.origin)
             Rectangle()
                 .border(.green)
                 .frame(width: size.width, height: size.height)
@@ -80,6 +91,30 @@ struct ClipHandle<ViewContext>: View {
                                 pos.x -= fingerPosition.x
                                 pos.y -= fingerPosition.y
                             }
+                            
+                            
+                            // Leading bounds
+                            if pos.x > position.x {
+                                pos.x = selected.frame.origin.x
+                            }
+                            
+                            // Trailing bounds
+                            if pos.x + selected.frame.width < position.x + size.width {
+                                pos.x = selected.frame.origin.x
+                            }
+                            
+                            // Top bounds
+                            if pos.y > position.y {
+                                pos.y = selected.frame.origin.y
+                            }
+                            
+                            // Bottom bounds
+                            if pos.y + selected.frame.height < position.y + size.height {
+                                pos.y = selected.frame.origin.y
+                            }
+                            
+                            print("finger", fingerPosition)
+                            print("pos", pos)
                             
                             selected.frame.origin = pos
                         }
@@ -118,6 +153,18 @@ struct ClipHandle<ViewContext>: View {
                             newFrame = CGSize(width: pos.x - clipFrame .origin.x, height: pos.y - clipFrame .origin.y)
                             
                             selected.clipFrame?.size = newFrame
+                            
+                            
+//                            // Trailing bounds
+//                            if newFrame.width > selected.frame.width {
+//                                newFrame.width = selected.frame.width
+//                            }
+//                            
+//                            // Bottom bounds
+//                            if newFrame.height > selected.frame.height {
+//                                newFrame.height = selected.frame.height
+//                            }
+                            
                             
                             // Enfornce mininmum size
                             newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
