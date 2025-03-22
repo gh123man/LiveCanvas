@@ -61,6 +61,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     public enum Alignment {
         case left, right, top, bottom, horizontal, vertical, center
     }
+    private var unimportedLayers: LayerImport
     
     @Published public var layers: [Layer<ViewContext>] {
        didSet {
@@ -71,8 +72,6 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
    }
     @Published public var undoStack: [[Layer<ViewContext>]] = []
     @Published public var redoStack: [[Layer<ViewContext>]] = []
-    
-    private var importRelativeLayers: Bool
     
     public var canUndo: Bool {
         return !undoStack.isEmpty
@@ -91,9 +90,14 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     @Published public var selected: Binding<Layer<ViewContext>>?
     
-    public init(layers: [Layer<ViewContext>] = [], importRelativeLayers: Bool) {
-        self.layers = layers
-        self.importRelativeLayers = importRelativeLayers
+    public enum LayerImport {
+        case absolute([Layer<ViewContext>])
+        case relative([Layer<ViewContext>])
+    }
+    
+    public init(layers: LayerImport) {
+        self.layers = []
+        self.unimportedLayers = layers
     }
     
     func denormalize(rect: CGRect, in size: CGSize) -> CGRect {
@@ -117,14 +121,16 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     func processRelativeLayers(size: CGSize) {
-        guard importRelativeLayers else { return }
-        var layers = self.layers
-        for (i, layer) in layers.enumerated() {
-            let f = layer.frame
-            let l = denormalize(rect: f, in: size)
-            layers[i].frame = l
+        switch unimportedLayers {
+        case .absolute(let newLayers):
+            self.layers = newLayers
+            
+        case .relative(var newLayers):
+            for (i, l) in newLayers.enumerated() {
+                newLayers[i].frame = denormalize(rect: l.frame, in: size)
+            }
+            self.layers = newLayers
         }
-        self.layers = layers
     }
     
     public func normalizedLayers() -> [Layer<ViewContext>] {
