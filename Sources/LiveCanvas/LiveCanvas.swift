@@ -96,6 +96,9 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
             GeometryReader { geometry in
                 canvas(originSize: geometry.size, renderSize: geometry.size) {
                     DispatchQueue.main.async {
+                        if viewModel.size == nil {
+                            viewModel.processRelativeLayers(size: geometry.size)
+                        }
                         viewModel.size = geometry.size
                     }
                 }

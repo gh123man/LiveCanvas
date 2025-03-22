@@ -72,6 +72,8 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     @Published public var undoStack: [[Layer<ViewContext>]] = []
     @Published public var redoStack: [[Layer<ViewContext>]] = []
     
+    private var importRelativeLayers: Bool
+    
     public var canUndo: Bool {
         return !undoStack.isEmpty
     }
@@ -89,8 +91,49 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     @Published public var selected: Binding<Layer<ViewContext>>?
     
-    public init(layers: [Layer<ViewContext>] = []) {
+    public init(layers: [Layer<ViewContext>] = [], importRelativeLayers: Bool) {
         self.layers = layers
+        self.importRelativeLayers = importRelativeLayers
+    }
+    
+    func denormalize(rect: CGRect, in size: CGSize) -> CGRect {
+        if rect == .null { return rect }
+        return CGRect(
+            x: rect.origin.x * size.width,
+            y: rect.origin.y * size.height,
+            width: rect.size.width * size.width,
+            height: rect.size.height * size.height
+        )
+    }
+    
+    func normalize(rect: CGRect, in size: CGSize) -> CGRect {
+        if rect == .null { return rect }
+        return CGRect(
+            x: rect.origin.x / size.width,
+            y: rect.origin.y / size.height,
+            width: rect.size.width / size.width,
+            height: rect.size.height / size.height
+        )
+    }
+    
+    func processRelativeLayers(size: CGSize) {
+        guard importRelativeLayers else { return }
+        var layers = self.layers
+        for (i, layer) in layers.enumerated() {
+            let f = layer.frame
+            let l = denormalize(rect: f, in: size)
+            layers[i].frame = l
+        }
+        self.layers = layers
+    }
+    
+    public func normalizedLayers() -> [Layer<ViewContext>] {
+        guard let size = size else { return [] }
+        var layers = self.layers
+        for (i, layer) in layers.enumerated() {
+            layers[i].frame = normalize(rect: layer.frame, in: size)
+        }
+        return layers
     }
     
     @discardableResult
