@@ -83,8 +83,24 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
             
         } symbols: {
             ForEach(viewModel.layers) { viewModel in
-                viewBuilder(viewModel)
-                .tag(viewModel.id)
+                if let clipFrame = viewModel.clipFrame {
+                    viewBuilder(viewModel)
+                    .mask {
+                        GeometryReader { proxy in
+                            let widthScale = proxy.size.width / viewModel.frame.width
+                            let heightScale = proxy.size.height / viewModel.frame.height
+                            Rectangle()
+                                .offset(x: (clipFrame.origin.x - viewModel.frame.origin.x) * widthScale,
+                                        y: (clipFrame.origin.y - viewModel.frame.origin.y) * heightScale)
+                                .frame(width: clipFrame.width * widthScale,
+                                       height: clipFrame.height * heightScale)
+                        }
+                    }
+                    .tag(viewModel.id)
+                } else {
+                    viewBuilder(viewModel)
+                        .tag(viewModel.id)
+                }
             }
         }.onTapGesture {
             viewModel.select(nil)
@@ -119,10 +135,15 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                         }
                     }
                     if selected.wrappedValue.resize != .disabled {
-                        SizeHandle(selected: selected, externalGeometry: geometry) {
+                        ClipHandle(selected: selected, externalGeometry: geometry) {
                            viewModel.undoCheckpoint()
                        }
                     }
+//                    if selected.wrappedValue.resize != .disabled {
+//                        SizeHandle(selected: selected, externalGeometry: geometry) {
+//                           viewModel.undoCheckpoint()
+//                       }
+//                    }
                 }
             }
         }

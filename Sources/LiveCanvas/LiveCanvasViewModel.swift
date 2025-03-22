@@ -26,6 +26,7 @@ public struct Layer<ViewContext>: Identifiable {
     }
     
     public var frame: CGRect
+    public var clipFrame: CGRect?
     public var id: LayerID
     public var context: ViewContext
     public var initialSize: InitialSize
@@ -34,9 +35,10 @@ public struct Layer<ViewContext>: Identifiable {
     public var resize: Resize
 
     
-    public init(_ context: ViewContext, id: UUID = UUID(), frame: CGRect = .null, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
+    public init(_ context: ViewContext, id: UUID = UUID(), frame: CGRect = .null, clipFrame: CGRect? = nil, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
         self.id = id
         self.frame = frame
+        self.clipFrame = clipFrame
         self.context = context
         self.initialSize = initialSize
         self.selectable = selectable
@@ -68,7 +70,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
                select(id)
            }
        }
-   }
+    }
     @Published public var undoStack: [[Layer<ViewContext>]] = []
     @Published public var redoStack: [[Layer<ViewContext>]] = []
     
