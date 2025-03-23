@@ -101,6 +101,8 @@ struct DemoView: View {
                         .background(.clear)
                     
                 }
+            } clipShape: { layer in
+                Circle()
             }
             .aspectRatio(0.77, contentMode: .fit)
             .contentShape(Rectangle())

@@ -4,26 +4,49 @@
 import SwiftUI
 import Foundation
 
-extension LiveCanvas {
+extension LiveCanvas where ClipShape == Rectangle {
     public init(viewModel: LiveCanvasViewModel<ViewContext>,
-                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content) 
-    where OverlayContent.Type == EmptyView.Type {
-        self.init(viewModel: viewModel, viewBuilder: viewBuilder, controlOverlay: { _, _ in })
+                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content,
+                @ViewBuilder controlOverlay: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent
+    ) {
+        self.init(
+            viewModel: viewModel,
+            viewBuilder: viewBuilder,
+            controlOverlay: controlOverlay,
+            clipShape: { _ in Rectangle() }
+        )
     }
 }
 
-public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View {
+extension LiveCanvas where OverlayContent == EmptyView, ClipShape == Rectangle {
+    public init(viewModel: LiveCanvasViewModel<ViewContext>,
+                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content
+    ) {
+        self.init(
+            viewModel: viewModel,
+            viewBuilder: viewBuilder,
+            controlOverlay: { _, _ in EmptyView() },
+            clipShape: { _ in Rectangle() }
+        )
+    }
+}
+
+public struct LiveCanvas<Content: View, OverlayContent: View, ClipShape: Shape, ViewContext>: View {
     
     @ObservedObject public var viewModel: LiveCanvasViewModel<ViewContext>
     @ViewBuilder public var viewBuilder: (Layer<ViewContext>) -> Content
     @ViewBuilder var overlayControls: (Binding<Layer<ViewContext>>, Bool) -> OverlayContent
+    @ViewBuilder var clipShape: (Layer<ViewContext>) -> ClipShape
 
     public init(viewModel: LiveCanvasViewModel<ViewContext>,
                 @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content,
-                @ViewBuilder controlOverlay: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent) {
+                @ViewBuilder controlOverlay: @escaping (Binding<Layer<ViewContext>>, Bool) -> OverlayContent,
+                @ViewBuilder clipShape: @escaping (Layer<ViewContext>) -> ClipShape
+    ) {
         self.viewModel = viewModel
         self.viewBuilder = viewBuilder
         self.overlayControls = controlOverlay
+        self.clipShape = clipShape
         self.viewModel.snapshotFunc = snapshot
     }
     
@@ -89,7 +112,7 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                         GeometryReader { proxy in
                             let widthScale = proxy.size.width / viewModel.frame.width
                             let heightScale = proxy.size.height / viewModel.frame.height
-                            Rectangle()
+                            clipShape(viewModel)
                                 .offset(x: (clipFrame.origin.x - viewModel.frame.origin.x) * widthScale,
                                         y: (clipFrame.origin.y - viewModel.frame.origin.y) * heightScale)
                                 .frame(width: clipFrame.width * widthScale,
