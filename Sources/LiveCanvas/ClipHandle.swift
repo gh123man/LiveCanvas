@@ -8,6 +8,18 @@
 import Foundation
 import SwiftUI
 
+struct DottedCropBorder: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                RoundedRectangle(cornerRadius: 0)
+                    .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [3]))
+                    .foregroundColor(.white)
+                    .shadow(color: .black, radius: 0, x: 1, y: 1)
+            )
+    }
+}
+
 struct ClipHandle<ViewContext>: View {
     
     @Binding var selected: Layer<ViewContext>
@@ -63,14 +75,14 @@ struct ClipHandle<ViewContext>: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .border(.green)
+                .modifier(DottedCropBorder())
                 .frame(width: size.width, height: size.height)
                 .contentShape(Rectangle())
                 .offset(offset)
                 .foregroundColor(.clear)
                 .position(position)
             Rectangle()
-                .border(.red)
+                .border(.blue)
                 .frame(width: selected.frame.width, height: selected.frame.height)
                 .contentShape(Rectangle())
                 .offset(frameOffset)
@@ -122,7 +134,7 @@ struct ClipHandle<ViewContext>: View {
                 )
             Circle()
                 .foregroundColor(.white)
-                .overlay(Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .overlay(Image(systemName: "crop")
                     .resizable()
                     .frame(width: 14, height: 14)
                     .foregroundColor(.black

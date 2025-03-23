@@ -123,6 +123,14 @@ struct DemoView: View {
                             Image(systemName: "trash.fill")
                         })
                         
+                        if selected.wrappedValue.croppable {
+                            Button(action: {
+                                vm.cropSelected()
+                            }) {
+                                Image(systemName: "crop")
+                            }
+                        }
+                        
                         ForEach(alignmentButtons, id: \.0) { imageName, alignment in
                             Button(action: { vm.align(selected.wrappedValue.id, to: alignment) }) {
                                 Image(systemName: imageName)
@@ -159,7 +167,7 @@ struct DemoView: View {
                                                                       height: 100))))
                 }
                 Button("Add Nora") {
-                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 250, height: 180)), resize: .proportional))
+                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 250, height: 180)), resize: .proportional, croppable: true))
                 }
                 Button("Render Snapshot") {
                     if let img = vm.render(to: CGSize(width: 100,

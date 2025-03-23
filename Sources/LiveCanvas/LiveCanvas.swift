@@ -132,21 +132,23 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ViewContext>: View
                 }
                 
                 if let selected = viewModel.selected {
-//                    if selected.wrappedValue.movable {
-//                        MoveHandle(selected: selected, externalGeometry: geometry) {
-//                            viewModel.undoCheckpoint()
-//                        }
-//                    }
-                    if selected.wrappedValue.resize != .disabled {
+                    if viewModel.cropEnabled {
                         ClipHandle(selected: selected, externalGeometry: geometry) {
-                           viewModel.undoCheckpoint()
-                       }
+                            viewModel.undoCheckpoint()
+                        }
+                    } else {
+                        if selected.wrappedValue.movable {
+                            MoveHandle(selected: selected, externalGeometry: geometry) {
+                                viewModel.undoCheckpoint()
+                            }
+                        }
+                        
+                        if selected.wrappedValue.resize != .disabled {
+                            SizeHandle(selected: selected, externalGeometry: geometry) {
+                                viewModel.undoCheckpoint()
+                            }
+                        }
                     }
-//                    if selected.wrappedValue.resize != .disabled {
-//                        SizeHandle(selected: selected, externalGeometry: geometry) {
-//                           viewModel.undoCheckpoint()
-//                       }
-//                    }
                 }
             }
         }

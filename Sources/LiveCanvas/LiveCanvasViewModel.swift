@@ -31,11 +31,20 @@ public struct Layer<ViewContext>: Identifiable {
     public var context: ViewContext
     public var initialSize: InitialSize
     public var movable: Bool
+    public var croppable: Bool
     public var selectable: Bool
     public var resize: Resize
 
-    
-    public init(_ context: ViewContext, id: UUID = UUID(), frame: CGRect = .null, clipFrame: CGRect? = nil, initialSize: InitialSize = .intrinsic, selectable: Bool = true, movable: Bool = true, resize: Resize = .any) {
+    public init(_ context: ViewContext,
+                id: UUID = UUID(),
+                frame: CGRect = .null,
+                clipFrame: CGRect? = nil,
+                initialSize: InitialSize = .intrinsic,
+                selectable: Bool = true,
+                movable: Bool = true,
+                resize: Resize = .any,
+                croppable: Bool = false
+    ) {
         self.id = id
         self.frame = frame
         self.clipFrame = clipFrame
@@ -44,6 +53,7 @@ public struct Layer<ViewContext>: Identifiable {
         self.selectable = selectable
         self.movable = movable
         self.resize = resize
+        self.croppable = croppable
     }
 }
 
@@ -83,6 +93,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         return !redoStack.isEmpty
     }
     
+    @Published var cropEnabled = false
     var size: CGSize?
     public var canvasSize: CGSize? {
         return size
@@ -186,6 +197,10 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public func select(_ id: LayerID?) {
+        if selected?.id == id {
+            return
+        }
+        cropEnabled = false
         if let id = id {
             selected = bindingFrom(id: id)
         } else {
@@ -203,6 +218,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
         if selected?.id == id {
             selected = nil
+            cropEnabled = false
         }
         undoCheckpoint()
         layers.remove(at: idx)
@@ -253,6 +269,11 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         }
     }
     
+    public func cropSelected() {
+        guard let selected = selected else { return }
+        cropEnabled = selected.wrappedValue.croppable
+    }
+    
     public func render(to size: CGSize? = nil) -> UIImage? {
         return snapshotFunc?(size)
     }
@@ -264,6 +285,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     public func undo() {
         selected = nil
+        cropEnabled = false
         if let last = undoStack.popLast() {
             redoStack.append(layers)
             layers = last
@@ -272,6 +294,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     
     public func redo() {
         selected = nil
+        cropEnabled = false
         if let last = redoStack.popLast() {
             undoStack.append(layers)
             layers = last
