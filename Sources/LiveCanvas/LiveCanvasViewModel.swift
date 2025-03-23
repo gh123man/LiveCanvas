@@ -27,6 +27,36 @@ public struct Layer<ViewContext>: Identifiable {
     
     public var frame: CGRect
     public var clipFrame: CGRect?
+    
+    public var presentedFrame: CGRect {
+        get {
+            return clipFrame ?? frame
+        }
+        set {
+            // Transform the underlying frame if the clip frame is modified. 
+            if let clipFrame = clipFrame {
+                let updatedClipFrame = newValue
+                let oldContentFrame = frame
+
+                let xRatio = (clipFrame.minX - oldContentFrame.minX) / oldContentFrame.width
+                let yRatio = (clipFrame.minY - oldContentFrame.minY) / oldContentFrame.height
+                let widthRatio = clipFrame.width / oldContentFrame.width
+                let heightRatio = clipFrame.height / oldContentFrame.height
+
+                let newContentWidth = updatedClipFrame.width / widthRatio
+                let newContentHeight = updatedClipFrame.height / heightRatio
+
+                let newContentX = updatedClipFrame.minX - xRatio * newContentWidth
+                let newContentY = updatedClipFrame.minY - yRatio * newContentHeight
+                self.frame = CGRect(x: newContentX, y: newContentY, width: newContentWidth, height: newContentHeight)
+                self.clipFrame = updatedClipFrame
+            } else {
+                frame = newValue
+            }
+            
+        }
+    }
+    
     public var id: LayerID
     public var context: ViewContext
     public var initialSize: InitialSize
@@ -139,8 +169,11 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
             self.layers = newLayers
             
         case .relative(var newLayers):
-            for (i, l) in newLayers.enumerated() {
-                newLayers[i].frame = denormalize(rect: l.frame, in: size)
+            for (i, layer) in newLayers.enumerated() {
+                newLayers[i].frame = denormalize(rect: layer.frame, in: size)
+                if let clipFrame = layer.clipFrame {
+                    newLayers[i].clipFrame = denormalize(rect: clipFrame, in: size)
+                }
             }
             self.layers = newLayers
         }
@@ -151,6 +184,9 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         var layers = self.layers
         for (i, layer) in layers.enumerated() {
             layers[i].frame = normalize(rect: layer.frame, in: size)
+            if let clipFrame = layer.clipFrame {
+                layers[i].clipFrame = normalize(rect: clipFrame, in: size)
+            }
         }
         return layers
     }
@@ -252,20 +288,20 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         undoCheckpoint()
         switch position {
         case .left:
-            layer.wrappedValue.frame.origin.x = 0
+            layer.wrappedValue.presentedFrame.origin.x = 0
         case .right:
-            layer.wrappedValue.frame.origin.x = size.width - layer.wrappedValue.frame.width
+            layer.wrappedValue.presentedFrame.origin.x = size.width - layer.wrappedValue.presentedFrame.width
         case .top:
-            layer.wrappedValue.frame.origin.y = 0
+            layer.wrappedValue.presentedFrame.origin.y = 0
         case .bottom:
-            layer.wrappedValue.frame.origin.y = size.height - layer.wrappedValue.frame.height
+            layer.wrappedValue.presentedFrame.origin.y = size.height - layer.wrappedValue.presentedFrame.height
         case .horizontal:
-            layer.wrappedValue.frame.origin.x = (size.width - layer.wrappedValue.frame.size.width) / 2
+            layer.wrappedValue.presentedFrame.origin.x = (size.width - layer.wrappedValue.presentedFrame.size.width) / 2
         case .vertical:
-            layer.wrappedValue.frame.origin.y = (size.height - layer.wrappedValue.frame.size.height) / 2
+            layer.wrappedValue.presentedFrame.origin.y = (size.height - layer.wrappedValue.presentedFrame.size.height) / 2
         case .center:
-            layer.wrappedValue.frame.origin.x = (size.width - layer.wrappedValue.frame.size.width) / 2
-            layer.wrappedValue.frame.origin.y = (size.height - layer.wrappedValue.frame.size.height) / 2
+            layer.wrappedValue.presentedFrame.origin.x = (size.width - layer.wrappedValue.presentedFrame.size.width) / 2
+            layer.wrappedValue.presentedFrame.origin.y = (size.height - layer.wrappedValue.presentedFrame.size.height) / 2
         }
     }
     

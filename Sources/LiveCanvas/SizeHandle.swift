@@ -114,35 +114,9 @@ struct SizeHandle<ViewContext>: View {
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        
-                        if let clipFrame = selected.clipFrame {
-                            let (updatedClipFrame, point) = computeFrame(frame: clipFrame, gestureLocation: gesture.location)
-                            selected.clipFrame = updatedClipFrame
-                            handlePos = point
-                            
-                            
-                            let oldContentFrame = selected.frame
-
-                            let xRatio = (clipFrame.minX - oldContentFrame.minX) / oldContentFrame.width
-                            let yRatio = (clipFrame.minY - oldContentFrame.minY) / oldContentFrame.height
-                            let widthRatio = clipFrame.width / oldContentFrame.width
-                            let heightRatio = clipFrame.height / oldContentFrame.height
-
-                            let newContentWidth = updatedClipFrame.width / widthRatio
-                            let newContentHeight = updatedClipFrame.height / heightRatio
-
-                            let newContentX = updatedClipFrame.minX - xRatio * newContentWidth
-                            let newContentY = updatedClipFrame.minY - yRatio * newContentHeight
-
-                            selected.frame = CGRect(x: newContentX, y: newContentY, width: newContentWidth, height: newContentHeight)
-                            
-                        } else {
-                            let (frame, point) = computeFrame(frame: selected.frame, gestureLocation: gesture.location)
-                            selected.frame = frame
-                            handlePos = point
-                        }
-                        
-                        
+                        let (frame, point) = computeFrame(frame: selected.presentedFrame, gestureLocation: gesture.location)
+                        selected.presentedFrame = frame
+                        handlePos = point
                     }
                     .onEnded { _ in
                         gestureOngoing = false
