@@ -15,10 +15,16 @@ struct MoveHandle<ViewContext>: View {
     var onStartMove: () -> ()
     
     var size: CGSize {
+        if let clipFrame = selected.clipFrame {
+            return clipFrame.size
+        }
         return selected.frame.size
     }
     
     var position: CGPoint {
+        if let clipFrame = selected.clipFrame {
+            return clipFrame.origin
+        }
         return selected.frame.origin
     }
     
@@ -49,7 +55,7 @@ struct MoveHandle<ViewContext>: View {
                         var pos = gesture.location
                         if fingerPosition == nil {
                             onStartMove()
-                            fingerPosition = CGPoint(x: pos.x - position.x, y: pos.y - position.y)
+                            fingerPosition = CGPoint(x: pos.x - selected.frame.origin.x, y: pos.y - selected.frame.origin.y)
                         }
 
                         pos = boundsCheck(pos)
@@ -60,7 +66,13 @@ struct MoveHandle<ViewContext>: View {
                             pos.y -= fingerPosition.y
                         }
                         
-                        selected.frame.origin = pos
+                        let deltax = pos.x - selected.frame.origin.x
+                        let deltay = pos.y - selected.frame.origin.y
+                        print(deltax, deltay)
+                        selected.frame.origin = selected.frame.origin.add(CGSize(width: deltax, height: deltay))
+                        if let clipFrame = selected.clipFrame {
+                            selected.clipFrame?.origin = clipFrame.origin.add(CGSize(width: deltax, height: deltay))
+                        }
                     }
                     .onEnded { _ in
                         fingerPosition = nil
