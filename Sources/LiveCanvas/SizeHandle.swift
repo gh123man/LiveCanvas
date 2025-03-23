@@ -50,12 +50,33 @@ struct SizeHandle<ViewContext>: View {
         //    So the new bottom-right corner is at the drag location.
         //    Hence, newSize = dragLocation - initialFrame.origin
         
-        var newWidth = clampedDragLocation.x - initialFrame.minX
-        var newHeight = clampedDragLocation.y - initialFrame.minY
+        var newWidth: CGFloat
+        var newHeight: CGFloat
         
-        // 3) Enforce min sizes
-        newWidth = max(newWidth, minSize.width)
-        newHeight = max(newHeight, minSize.height)
+        
+        switch selected.resize {
+        case .any:
+            // 3) Enforce min sizes
+            newWidth = max(clampedDragLocation.x - initialFrame.minX, minSize.width)
+            newHeight = max(clampedDragLocation.y - initialFrame.minY, minSize.height)
+        case .proportional:
+            let wChange = clampedDragLocation.x - frame.origin.x
+            let hChange = clampedDragLocation.y - frame.origin.y
+            let wProportin = wChange / frame.width
+            let hProportin = hChange / frame.height
+
+            if wProportin > hProportin {
+                newWidth = wChange
+                newHeight = frame.height * wProportin
+            } else {
+                newWidth = frame.width * hProportin
+                newHeight = hChange
+            }
+            
+        default:
+            // Should not be reachable
+            return (frame, gestureLocation)
+        }
         
         // 4) Update the main frame (keep origin fixed, change size)
         let finalFrame = CGRect(
@@ -71,7 +92,6 @@ struct SizeHandle<ViewContext>: View {
             x: frame.maxX,
             y: frame.maxY
         )
-//        handlePos = boundsCheck(finalBottomRight)
         return (finalFrame, boundsCheck(finalBottomRight))
     }
     
