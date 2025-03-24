@@ -45,7 +45,7 @@ extension LiveCanvas where OverlayContent == EmptyView, ClipShape == Rectangle {
     }
 }
 
-public struct LiveCanvas<Content: View, OverlayContent: View, ClipShape: Shape, ViewContext>: View {
+public struct LiveCanvas<Content: View, OverlayContent: View, ClipShape: View, ViewContext>: View {
     
     @ObservedObject public var viewModel: LiveCanvasViewModel<ViewContext>
     @ViewBuilder public var viewBuilder: (Layer<ViewContext>) -> Content
