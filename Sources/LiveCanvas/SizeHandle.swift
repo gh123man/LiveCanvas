@@ -12,7 +12,6 @@ struct SizeHandle<ViewContext>: View {
     
     // Store starting data when drag begins
     @State private var initialFrame: CGRect = .zero
-    @State private var initialClipFrame: CGRect?
     
     var externalGeometry: GeometryProxy
     var onStartMove: () -> ()
@@ -21,8 +20,9 @@ struct SizeHandle<ViewContext>: View {
     
     // Called whenever we need to re-sync the handle's position
     // with the actual bottom-right corner of whatever frame is visible.
-    private func computeHandlePosition() {
-        handlePos = boundsCheck(CGPoint(x: selected.presentedFrame.maxX, y: selected.presentedFrame.maxY))
+    private func computeHandlePosition(frame: CGRect? = nil) {
+        let ref = frame ?? selected.presentedFrame
+        handlePos = boundsCheck(CGPoint(x: ref.maxX, y: ref.maxY))
     }
     
     // Ensure the point doesn't exceed the canvas bounds
@@ -124,8 +124,8 @@ struct SizeHandle<ViewContext>: View {
                     }
             )
             // Also re-sync handle if frame changes externally
-            .onChange(of: selected.frame) { _ in
-                computeHandlePosition()
+            .onChange(of: selected.presentedFrame) { newFrame in
+                computeHandlePosition(frame: newFrame)
             }
     }
 }
