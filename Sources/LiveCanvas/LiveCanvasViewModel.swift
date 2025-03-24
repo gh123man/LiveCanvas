@@ -233,10 +233,9 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
     }
     
     public func select(_ id: LayerID?) {
-        if selected?.id == id {
-            return
+        if selected?.id != id {
+            cropEnabled = false
         }
-        cropEnabled = false
         if let id = id {
             selected = bindingFrom(id: id)
         } else {
