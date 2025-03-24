@@ -68,7 +68,6 @@ struct MoveHandle<ViewContext>: View {
                         
                         let deltax = pos.x - selected.frame.origin.x
                         let deltay = pos.y - selected.frame.origin.y
-                        print(deltax, deltay)
                         selected.frame.origin = selected.frame.origin.add(CGSize(width: deltax, height: deltay))
                         if let clipFrame = selected.clipFrame {
                             selected.clipFrame?.origin = clipFrame.origin.add(CGSize(width: deltax, height: deltay))
