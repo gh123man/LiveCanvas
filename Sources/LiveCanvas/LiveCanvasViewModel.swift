@@ -123,7 +123,7 @@ public class LiveCanvasViewModel<ViewContext>: ObservableObject {
         return !redoStack.isEmpty
     }
     
-    @Published var cropEnabled = false
+    @Published public private(set) var cropEnabled = false
     var size: CGSize?
     public var canvasSize: CGSize? {
         return size
