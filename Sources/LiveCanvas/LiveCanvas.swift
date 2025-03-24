@@ -18,6 +18,20 @@ extension LiveCanvas where ClipShape == Rectangle {
     }
 }
 
+extension LiveCanvas where OverlayContent == EmptyView {
+    public init(viewModel: LiveCanvasViewModel<ViewContext>,
+                @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content,
+                @ViewBuilder clipShape: @escaping (Layer<ViewContext>) -> ClipShape
+    ) {
+        self.init(
+            viewModel: viewModel,
+            viewBuilder: viewBuilder,
+            controlOverlay: { _, _ in EmptyView() },
+            clipShape: clipShape
+        )
+    }
+}
+
 extension LiveCanvas where OverlayContent == EmptyView, ClipShape == Rectangle {
     public init(viewModel: LiveCanvasViewModel<ViewContext>,
                 @ViewBuilder viewBuilder: @escaping (Layer<ViewContext>) -> Content
