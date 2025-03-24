@@ -22,8 +22,7 @@ struct SizeHandle<ViewContext>: View {
     // Called whenever we need to re-sync the handle's position
     // with the actual bottom-right corner of whatever frame is visible.
     private func computeHandlePosition() {
-        let ref = selected.clipFrame ?? selected.frame
-        handlePos = boundsCheck(CGPoint(x: ref.maxX, y: ref.maxY))
+        handlePos = boundsCheck(CGPoint(x: selected.presentedFrame.maxX, y: selected.presentedFrame.maxY))
     }
     
     // Ensure the point doesn't exceed the canvas bounds
