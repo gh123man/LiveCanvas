@@ -149,10 +149,10 @@ public struct LiveCanvas<Content: View, OverlayContent: View, ClipShape: View, V
             GeometryReader { geometry in
                 canvas(originSize: geometry.size, renderSize: geometry.size) {
                     DispatchQueue.main.async {
-                        if viewModel.size == nil {
+                        if viewModel.size == nil, geometry.size.height > 1, geometry.size.width > 1 {
+                            viewModel.size = geometry.size
                             viewModel.processRelativeLayers(size: geometry.size)
                         }
-                        viewModel.size = geometry.size
                     }
                 }
                 
