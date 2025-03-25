@@ -14,6 +14,7 @@ struct TapHandle<ViewContext>: View {
     @Binding var viewModel: Layer<ViewContext>
     var externalGeometry: GeometryProxy
     var onTap: (Binding<Layer<ViewContext>>) -> ()
+    let minTapSize = CGSize(width: 20, height: 20)
     
     var size: CGSize {
         return viewModel.presentedFrame.size
@@ -29,7 +30,7 @@ struct TapHandle<ViewContext>: View {
     
     var body: some View {
         Rectangle()
-            .frame(width: size.width, height: size.height)
+            .frame(width: max(size.width, minTapSize.width), height: max(size.height, minTapSize.height))
             .contentShape(Rectangle())
             .offset(offset)
             .foregroundColor(.clear)
