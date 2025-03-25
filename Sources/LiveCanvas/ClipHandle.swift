@@ -29,8 +29,6 @@ struct ClipHandle<ViewContext>: View {
     var externalGeometry: GeometryProxy
     var onStartMove: () -> ()
     
-    let minSize = CGSize(width: 20, height: 20)
-    
     var clipFrame: CGRect {
         if selected.clipFrame == nil || selected.clipFrame == .null {
             DispatchQueue.main.async {
@@ -171,8 +169,8 @@ struct ClipHandle<ViewContext>: View {
                             var newFrame = CGSize(width: pos.x - clipFrame .origin.x, height: pos.y - clipFrame .origin.y)
                             
                             // Enfornce min/max size
-                            newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
-                            newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
+                            newFrame.width = newFrame.width < selected.minSize.width ? selected.minSize.width : newFrame.width
+                            newFrame.height = newFrame.height < selected.minSize.height ? selected.minSize.height : newFrame.height
                             
                             selected.clipFrame?.size = newFrame
                             computePosition()

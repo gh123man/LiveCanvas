@@ -27,6 +27,7 @@ public struct Layer<ViewContext>: Identifiable {
     
     public var frame: CGRect
     public var clipFrame: CGRect?
+    public var minSize: CGSize
     
     public var presentedFrame: CGRect {
         get {
@@ -69,6 +70,7 @@ public struct Layer<ViewContext>: Identifiable {
                 id: UUID = UUID(),
                 frame: CGRect = .null,
                 clipFrame: CGRect? = nil,
+                minSize: CGSize = CGSize(width: 20, height: 20),
                 initialSize: InitialSize = .intrinsic,
                 selectable: Bool = true,
                 movable: Bool = true,
@@ -78,6 +80,7 @@ public struct Layer<ViewContext>: Identifiable {
         self.id = id
         self.frame = frame
         self.clipFrame = clipFrame
+        self.minSize = minSize
         self.context = context
         self.initialSize = initialSize
         self.selectable = selectable

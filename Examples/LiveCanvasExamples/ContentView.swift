@@ -169,7 +169,12 @@ struct DemoView: View {
                                                                       height: 100))))
                 }
                 Button("Add Nora") {
-                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 250, height: 180)), resize: .proportional, croppable: true))
+                    vm.add(Layer(.image,
+                                 minSize: CGSize(width: 1, height: 20),
+                                 initialSize: .size(CGSize(width: 250, height: 180)),
+                                 resize: .any,
+                                 croppable: true
+                                ))
                 }
                 Button("Render Snapshot") {
                     if let img = vm.render(to: CGSize(width: 100,

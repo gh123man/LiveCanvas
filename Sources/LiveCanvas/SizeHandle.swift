@@ -16,8 +16,6 @@ struct SizeHandle<ViewContext>: View {
     var externalGeometry: GeometryProxy
     var onStartMove: () -> ()
     
-    let minSize = CGSize(width: 20, height: 20)
-    
     // Called whenever we need to re-sync the handle's position
     // with the actual bottom-right corner of whatever frame is visible.
     private func computeHandlePosition(frame: CGRect? = nil) {
@@ -56,20 +54,32 @@ struct SizeHandle<ViewContext>: View {
         switch selected.resize {
         case .any:
             // 3) Enforce min sizes
-            newWidth = max(clampedDragLocation.x - initialFrame.minX, minSize.width)
-            newHeight = max(clampedDragLocation.y - initialFrame.minY, minSize.height)
+            newWidth = max(clampedDragLocation.x - initialFrame.minX, selected.minSize.width)
+            newHeight = max(clampedDragLocation.y - initialFrame.minY, selected.minSize.height)
         case .proportional:
-            let wChange = clampedDragLocation.x - frame.origin.x
-            let hChange = clampedDragLocation.y - frame.origin.y
-            let wProportin = wChange / frame.width
-            let hProportin = hChange / frame.height
+            let wChange = clampedDragLocation.x - initialFrame.minX
+            let hChange = clampedDragLocation.y - initialFrame.minY
 
-            if wProportin > hProportin {
-                newWidth = wChange
-                newHeight = frame.height * wProportin
+            let aspectRatio = frame.width / frame.height
+            let widthBasedHeight = wChange / aspectRatio
+            let heightBasedWidth = hChange * aspectRatio
+
+            if widthBasedHeight >= hChange {
+                newWidth = max(wChange, selected.minSize.width)
+                newHeight = newWidth / aspectRatio
             } else {
-                newWidth = frame.width * hProportin
-                newHeight = hChange
+                newHeight = max(hChange, selected.minSize.height)
+                newWidth = newHeight * aspectRatio
+            }
+
+            // Enforce min size again in case aspect ratio push violates it
+            if newWidth < selected.minSize.width {
+                newWidth = selected.minSize.width
+                newHeight = newWidth / aspectRatio
+            }
+            if newHeight < selected.minSize.height {
+                newHeight = selected.minSize.height
+                newWidth = newHeight * aspectRatio
             }
             
         default:
