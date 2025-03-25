@@ -24,9 +24,9 @@ struct DemoView: View {
     
     @State var background: LayerID?
 
-    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: [
+    @ObservedObject var vm = LiveCanvasViewModel<MyViewContext>(layers: .absolute([
         Layer(.text("Nora Rocks 🐱"))
-    ], importRelativeLayers: false)
+    ]))
     
     let alignmentButtons: [(String, LiveCanvasViewModel<MyViewContext>.Alignment)] = [
         ("rectangle.center.inset.filled", .center),
@@ -101,6 +101,8 @@ struct DemoView: View {
                         .background(.clear)
                     
                 }
+            } clipShape: { layer in
+                Circle()
             }
             .aspectRatio(0.77, contentMode: .fit)
             .contentShape(Rectangle())
@@ -122,6 +124,14 @@ struct DemoView: View {
                         Button(action: { vm.remove(selected.id) }, label: {
                             Image(systemName: "trash.fill")
                         })
+                        
+                        if selected.wrappedValue.croppable {
+                            Button(action: {
+                                vm.cropSelected()
+                            }) {
+                                Image(systemName: "crop")
+                            }
+                        }
                         
                         ForEach(alignmentButtons, id: \.0) { imageName, alignment in
                             Button(action: { vm.align(selected.wrappedValue.id, to: alignment) }) {
@@ -159,7 +169,12 @@ struct DemoView: View {
                                                                       height: 100))))
                 }
                 Button("Add Nora") {
-                    vm.add(Layer(.image, initialSize: .size(CGSize(width: 140, height: 100)), resize: .proportional))
+                    vm.add(Layer(.image,
+                                 minSize: CGSize(width: 1, height: 20),
+                                 initialSize: .size(CGSize(width: 250, height: 180)),
+                                 resize: .any,
+                                 croppable: true
+                                ))
                 }
                 Button("Render Snapshot") {
                     if let img = vm.render(to: CGSize(width: 100,

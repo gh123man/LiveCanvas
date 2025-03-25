@@ -1,97 +1,141 @@
-//
-//  File.swift
-//  
-//
-//  Created by Brian Floersch on 7/28/24.
-//
-
-import Foundation
 import SwiftUI
 
 struct SizeHandle<ViewContext>: View {
     
     @Binding var selected: Layer<ViewContext>
-    @State var handlePos: CGPoint = .zero
-    @State var gestureOngoing = false
+    
+    // The handle position we display on-screen
+    @State private var handlePos: CGPoint = .zero
+    
+    // To control gesture logic
+    @State private var gestureOngoing = false
+    
+    // Store starting data when drag begins
+    @State private var initialFrame: CGRect = .zero
+    
     var externalGeometry: GeometryProxy
     var onStartMove: () -> ()
     
-    let minSize = CGSize(width: 20, height: 20)
-    
-    func computePosition(frame: CGRect? = nil) {
-        let frame = frame ?? selected.frame
-        handlePos = boundsCheck(CGPoint(x: frame.origin.x + frame.width, y: frame.origin.y + frame.height))
+    // Called whenever we need to re-sync the handle's position
+    // with the actual bottom-right corner of whatever frame is visible.
+    private func computeHandlePosition(frame: CGRect? = nil) {
+        let ref = frame ?? selected.presentedFrame
+        handlePos = boundsCheck(CGPoint(x: ref.maxX, y: ref.maxY))
     }
     
-    func boundsCheck(_ inpt: CGPoint) -> CGPoint {
-        var pos = inpt
-        pos.x = pos.x < 0 ? 0 : pos.x
-        pos.y = pos.y < 0 ? 0 : pos.y
-        pos.x = pos.x > externalGeometry.size.width ? externalGeometry.size.width : pos.x
-        pos.y = pos.y > externalGeometry.size.height ? externalGeometry.size.height : pos.y
-        return pos
+    // Ensure the point doesn't exceed the canvas bounds
+    private func boundsCheck(_ point: CGPoint) -> CGPoint {
+        var pt = point
+        pt.x = max(0, min(pt.x, externalGeometry.size.width))
+        pt.y = max(0, min(pt.y, externalGeometry.size.height))
+        return pt
+    }
+    
+    func computeFrame(frame: CGRect, gestureLocation: CGPoint) -> (CGRect, CGPoint) {
+        // On first movement, capture the current state
+        if !gestureOngoing {
+            gestureOngoing = true
+            onStartMove()
+            initialFrame = frame
+        }
+        
+        // 1) Figure out where the user is dragging the handle
+        let rawDragLocation = gestureLocation
+        let clampedDragLocation = boundsCheck(rawDragLocation)
+        
+        // 2) We want the parent's top-left corner pinned at initialFrame.origin.
+        //    So the new bottom-right corner is at the drag location.
+        //    Hence, newSize = dragLocation - initialFrame.origin
+        
+        var newWidth: CGFloat
+        var newHeight: CGFloat
+        
+        
+        switch selected.resize {
+        case .any:
+            // 3) Enforce min sizes
+            newWidth = max(clampedDragLocation.x - initialFrame.minX, selected.minSize.width)
+            newHeight = max(clampedDragLocation.y - initialFrame.minY, selected.minSize.height)
+        case .proportional:
+            let wChange = clampedDragLocation.x - initialFrame.minX
+            let hChange = clampedDragLocation.y - initialFrame.minY
+
+            let aspectRatio = frame.width / frame.height
+            let widthBasedHeight = wChange / aspectRatio
+            let heightBasedWidth = hChange * aspectRatio
+
+            if widthBasedHeight >= hChange {
+                newWidth = max(wChange, selected.minSize.width)
+                newHeight = newWidth / aspectRatio
+            } else {
+                newHeight = max(hChange, selected.minSize.height)
+                newWidth = newHeight * aspectRatio
+            }
+
+            // Enforce min size again in case aspect ratio push violates it
+            if newWidth < selected.minSize.width {
+                newWidth = selected.minSize.width
+                newHeight = newWidth / aspectRatio
+            }
+            if newHeight < selected.minSize.height {
+                newHeight = selected.minSize.height
+                newWidth = newHeight * aspectRatio
+            }
+            
+        default:
+            // Should not be reachable
+            return (frame, gestureLocation)
+        }
+        
+        // 4) Update the main frame (keep origin fixed, change size)
+        let finalFrame = CGRect(
+            x: initialFrame.minX,
+            y: initialFrame.minY,
+            width: newWidth,
+            height: newHeight
+        )
+        
+        // 5) The actual handle position (bottom-right of the parent) might differ
+        //    if we had to clamp to minSize. So let's use the parent's new bottom-right.
+        let finalBottomRight = CGPoint(
+            x: frame.maxX,
+            y: frame.maxY
+        )
+        return (finalFrame, boundsCheck(finalBottomRight))
     }
     
     var body: some View {
         Circle()
             .foregroundColor(.white)
-            .overlay(Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .resizable()
-                .frame(width: 14, height: 14)
-                .foregroundColor(.black
-                    .opacity(0.6)))
+            .overlay(
+                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    .resizable()
+                    .frame(width: 14, height: 14)
+                    .foregroundColor(.black.opacity(0.6))
+            )
             .frame(width: 24, height: 24)
             .position(handlePos)
             .shadow(radius: 5)
-            .onChange(of: selected.frame) { newValue in
-                computePosition(frame: newValue)
-            }
             .onAppear {
-                computePosition()
+                // Set initial handle position once everything is laid out
+                computeHandlePosition()
             }
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        if !gestureOngoing {
-                            self.gestureOngoing = true
-                            onStartMove()
-                        }
-                        
-                        let pos = boundsCheck(gesture.location)
-                        var newFrame: CGSize
-                        
-                        switch selected.resize {
-                        case .any:
-                            newFrame = CGSize(width: pos.x - selected.frame .origin.x, height: pos.y - selected.frame .origin.y)
-                            
-                            selected.frame.size = newFrame
-                        case .proportional:
-                            let frame = selected.frame
-                            
-                            let wChange = pos.x - frame.origin.x
-                            let hChange = pos.y - frame.origin.y
-                            let wProportin = wChange / frame.width
-                            let hProportin = hChange / frame.height
-
-                            if wProportin > hProportin {
-                                newFrame = CGSize(width: wChange, height: frame.height * wProportin)
-                            } else {
-                                newFrame = CGSize(width: frame.width * hProportin, height: hChange)
-                            }
-                            
-                        default: return
-                            
-                        }
-                        
-                        // Enfornce mininmum size
-                        newFrame.width = newFrame.width < minSize.width ? minSize.width : newFrame.width
-                        newFrame.height = newFrame.height < minSize.height ? minSize.height : newFrame.height
-                        selected.frame.size = newFrame
-                        computePosition()
+                        let (frame, point) = computeFrame(frame: selected.presentedFrame, gestureLocation: gesture.location)
+                        selected.presentedFrame = frame
+                        handlePos = point
                     }
                     .onEnded { _ in
                         gestureOngoing = false
+                        // Ensure our handle is snapped precisely at the final corner
+                        computeHandlePosition()
                     }
             )
+            // Also re-sync handle if frame changes externally
+            .onChange(of: selected.presentedFrame) { newFrame in
+                computeHandlePosition(frame: newFrame)
+            }
     }
 }
